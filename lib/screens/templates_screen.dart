@@ -110,7 +110,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 // КНОПКА РЕДАКТИРОВАНИЯ
                 IconButton(
                   icon: Icon(Icons.edit),
-                  onPressed: () => _editTemplate(template),
+                  onPressed: () => _editTemplate(index),
                 ),
                 // КНОПКА УДАЛЕНИЯ
                 IconButton(
@@ -119,7 +119,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 ),
               ],
             ),
-            onTap: () => _editTemplate(template),
+            onTap: () => _editTemplate(index),
           ),
         );
       },
@@ -137,7 +137,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   // ДОБАВЛЕНИЕ ТРЕНИРОВКИ
   void _addTemplate() {
     final newTemplate = WorkoutTemplate(
-      id: '${_templates.length + 1}',
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: 'Новая тренировка',
       dayOfWeek: 'Понедельник',
       exercises: [],
@@ -149,19 +149,24 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
       _templates.add(newTemplate);
     });
     // СРАЗУ ПЕРЕХОДИМ К РЕДАКТИРОВАНИЮ
-    _editTemplate(newTemplate);
+    _editTemplate(_templates.length -1);
   }
 
   // РЕДАКТИРОВАНИЕ ТРЕНИРОВКИ
-  void _editTemplate(WorkoutTemplate template) {
+  void _editTemplate(int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => EditTemplateScreen(template: template)
+          builder: (context) => EditTemplateScreen(
+              template: _templates[index],
+          ),
       ),
-
-    ).then((_) {
-      setState(() {});
+    ).then((updateTemplate) {
+      if (updateTemplate != null) {
+        setState((){
+        _templates[index] = updateTemplate;
+        });
+      }
     });
   }
 

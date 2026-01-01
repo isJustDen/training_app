@@ -59,6 +59,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       ),
     );
   }
+
 // МЕТОД ДЛЯ ПОСТРОЕНИЯ ОСНОВНОГО СОДЕРЖИМОГО
   Widget _buildBody(){
     return SingleChildScrollView(
@@ -69,6 +70,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           // ЗАГОЛОВОК И ОПИСАНИЕ
           _buildHeader(),
           const SizedBox(height: 24),
+
           // ПОЛЯ ДЛЯ РЕДАКТИРОВАНИЯ
           _buildEditFields(),
           const SizedBox(height: 24),
@@ -396,12 +398,17 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       _showError('Введите день недели');
       return;
     }
+
+    // СОЗДАЕМ ОБНОВЛЕННУЮ ВЕРСИЮ ШАБЛОНА
+    final updatedTemplate = _template.copyWith(
+      updatedAt: DateTime.now(),
+    );
+
     // ЗДЕСЬ ПОЗЖЕ БУДЕМ СОХРАНЯТЬ В БАЗУ ДАННЫХ
     print('Сохранено ${_template.name}');
 
     // ВОЗВРАЩАЕМСЯ НАЗАД
-    Navigator.pop(context);
-
+    Navigator.pop(context, updatedTemplate);
   }
 
   // ПОКАЗАТЬ ОШИБКУ
