@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
-import '../models/exercise.dart';
 import '../services/storage_service.dart';
 import 'edit_template_screen.dart';
+import 'workout_screen.dart';
 
 class TemplatesScreen extends StatefulWidget{
   const TemplatesScreen({super.key});
@@ -137,11 +137,19 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // КНОПКА ЗАПУСКА ТРЕНИРОВКИ
+                IconButton(
+                  icon: const Icon(Icons.play_arrow, color: Colors.green),
+                  onPressed: () => _startWorkout(template),
+                    tooltip: 'Начать тренировку',
+                ),
+
                 // КНОПКА РЕДАКТИРОВАНИЯ
                 IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: () => _editTemplate(index),
                 ),
+
                 // КНОПКА УДАЛЕНИЯ
                 IconButton(
                   icon: Icon(Icons.delete),
@@ -268,6 +276,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red
+
                 ),
                 child: const Text('Очистить'),
             ),
@@ -275,5 +284,16 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
         ),
     );
   }
+
+  //МЕТОД ДЛЯ ЗАПУСКА ТРЕНИРОВКИ:
+  void _startWorkout(WorkoutTemplate template){
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => WorkoutScreen(template: template),
+      ),
+    );
+  }
+
 }
 
