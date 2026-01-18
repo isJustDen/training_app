@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
 import '../widgets/timer_widget.dart';
+import '../services/storage_service.dart';
+import '../models/workout_history.dart';
+import '../models/exercise.dart';
+
 
 // ЭКРАН АКТИВНОЙ ТРЕНИРОВКИ
 // StatefulWidget потому что состояние постоянно меняется
@@ -201,6 +205,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       value: '${progress.completedReps}',
                       icon: Icons.repeat_one,
                       onIncrement: () => _incrementReps(index),
+                      onDecrement: () => _decrementReps(index),
                     ),
                   ],
                 ),
@@ -279,6 +284,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     Color? color,
     VoidCallback? onEdit,
     VoidCallback? onIncrement,
+    VoidCallback? onDecrement,
   }) {
     return Expanded(
         child: GestureDetector(
@@ -309,20 +315,44 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 ),
                 const SizedBox(height: 4),
 
-                if (onIncrement != null)
-                // ДЛЯ ПОВТОРЕНИЙ - КНОПКА + РЯДОМ С ЗНАЧЕНИЕМ
+                if (onIncrement != null && onDecrement != null)
+                // ДЛЯ ПОВТОРЕНИЙ - ДВЕ КНОПКИ (+ и -) ПО БОКАМ ОТ ЗНАЧЕНИЯ
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        value,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: color ?? Colors.black,
+                    GestureDetector(
+                      onTap: onDecrement,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.remove,
+                          size: 20,
+                          color: Colors.red,
+                          ),
                         ),
                       ),
+
                       const SizedBox(width: 4),
+
+                      Container(
+                        constraints: BoxConstraints(minWidth: 40),
+                        child: Text(
+                          value,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: color ?? Colors.black,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 4),
+
                       GestureDetector(
                         onTap: onIncrement,
                         child: Container(
@@ -333,7 +363,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                           ),
                           child: const Icon(
                             Icons.add,
-                            size: 16,
+                            size: 20,
                             color: Colors.green,
                           ),
                         ),
@@ -449,6 +479,18 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         completedReps: currentReps + 1,
       );
     });
+  }
+
+  // УМЕНЬШЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
+  void _decrementReps(int index) {
+    if (_exercisesProgress[index].completedReps > 0) {
+      setState(() {
+        final currentReps = _exercisesProgress[index].completedReps;
+        _exercisesProgress[index] = _exercisesProgress[index].copyWith(
+          completedReps: currentReps - 1,
+        );
+      });
+    }
   }
 
   // ЗАВЕРШЕНИЕ ПОДХОДА
@@ -615,13 +657,45 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               child: const Text('Продолжить'),
             ),
             ElevatedButton(
-              onPressed: (){
-                // ЗДЕСЬ ПОЗЖЕ ДОБАВИМ СОХРАНЕНИЕ РЕЗУЛЬТАТОВ
-                print('Тренировка завершена!');
+              onPressed: () async {
+                // СОЗДАЕМ ЗАПИСЬ В ИСТОРИИ
+                final workoutHistory = WorkoutHistory(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  templateId: widget.template.id,
+                  date: DateTime.now(),
+                  exercises: _exercisesProgress
+                      .map((progress) => Exercise(
+                      id: progress.exercise.id,
+                      name: progress.exercise.name,
+                      weight: progress.currentWeight,
+                      sets: progress.completedSets,
+                      reps: progress.completedReps,
+                      restTime: progress.exercise.restTime,
+                      ))
+                      .toList(),
+                  duration: duration.inSeconds,
+                );
+
+                // СОХРАНЯЕМ В ИСТОРИЮ
+                await StorageService.addToHistory(workoutHistory);
+
+                print('Тренировка сохранена в историю!');
                 Navigator.pop(context); //Закрыть диалог
+
+                // ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ О СОХРАНЕНИИ
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Тренировка сохранена в историю'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                // ЗАДЕРЖКА ДЛЯ ПОКАЗА SNACKBAR
+                await Future.delayed(const Duration(milliseconds: 1500));
+
                 Navigator.pop(context); // вернуться к списку тренировок
               },
-              child: const Text('Завершить'),
+              child: const Text('Завершить и сохранить'),
             ),
           ],
         ),
