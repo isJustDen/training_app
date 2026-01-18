@@ -1,15 +1,18 @@
 //services/storage_service.dart
 
 import 'dart:convert';
-import'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exercise.dart';
 import '../models/workout_template.dart';
+import '../models/workout_history.dart';
 
 // КЛАСС ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ
 class StorageService {
   // КОНСТАНТЫ - ключи для хранения
   static const String _templatesKey = 'workout_templates';
+
+  static const String _historyKey = 'workout_history';
 
   // МЕТОД ДЛЯ ПОЛУЧЕНИЯ ЭКЗЕМПЛЯРА SharedPreferences
   static Future <SharedPreferences> get _prefs async {
@@ -122,10 +125,44 @@ class StorageService {
     ];
   }
 
-  // ОЧИСТКА ВСЕХ ДАННЫХ (для тестирования)
+  // ОЧИСТКА ВСЕХ ДАННЫХ
   static Future<void> clearAllData() async{
     final prefs = await _prefs;
     await prefs.remove(_templatesKey);
+    await prefs.remove(_historyKey);
     print('Все данные очищены');
+  }
+
+  // СОХРАНЕНИЕ ИСТОРИИ ТРЕНИРОВОК
+  static Future<void> saveHistory(List<WorkoutHistory> history) async {
+    final prefs = await _prefs;
+    final historyJson = history.map((h) => h.toMap()).toList();
+    await prefs.setString(_historyKey, jsonEncode(historyJson));
+    print('Сохранено ${history.length} записей истории');
+  }
+
+  // ЗАГРУЗКА ИСТОРИИ ТРЕНИРОВОК
+  static Future<List<WorkoutHistory>> loadHistory() async {
+    final prefs = await _prefs;
+    final historyJson = prefs.getString(_historyKey);
+
+    if (historyJson == null){
+      return [];
+    }
+
+    try{
+      final List<dynamic> data = jsonDecode(historyJson);
+      return data.map((item) => WorkoutHistory.fromMap(item)).toList();
+    } catch (e) {
+      debugPrint('Ошибка загрузки истории ${e}');
+      return [];
+    }
+  }
+
+  // ДОБАВЛЕНИЕ НОВОЙ ЗАПИСИ В ИСТОРИЮ
+  static Future <void> addToHistory(WorkoutHistory workout) async {
+    final history = await loadHistory();
+    history.add(workout);
+    await saveHistory(history);
   }
 }

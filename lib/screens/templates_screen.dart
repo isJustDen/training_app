@@ -5,6 +5,8 @@ import '../models/workout_template.dart';
 import '../services/storage_service.dart';
 import 'edit_template_screen.dart';
 import 'workout_screen.dart';
+import 'stats_screen.dart';
+
 
 class TemplatesScreen extends StatefulWidget{
   const TemplatesScreen({super.key});
@@ -54,6 +56,13 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
         title: const Text('Мои тренировки'),
         centerTitle: true,
         actions: [
+          // КНОПКА СТАТИСТИКИ
+          IconButton(
+            onPressed: () => _openStats(),
+            icon: const Icon(Icons.assessment),
+            tooltip: 'Статистика',
+          ),
+
           // КНОПКА ОБНОВЛЕНИЯ
           IconButton(
               onPressed: _loadTemplates,
@@ -295,5 +304,14 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
+  //МЕТОД СТАТИСТИКИ
+  void _openStats(){
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => const StatsScreen(),
+      ),
+    );
+  }
 }
 
