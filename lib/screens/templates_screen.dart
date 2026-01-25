@@ -6,6 +6,9 @@ import '../services/storage_service.dart';
 import 'edit_template_screen.dart';
 import 'workout_screen.dart';
 import 'stats_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
+import 'settings_screen.dart';
 
 
 class TemplatesScreen extends StatefulWidget{
@@ -26,6 +29,12 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   void initState(){
     super.initState();
     _loadTemplates(); // Загружаем данные при создании
+
+    // ЗАГРУЖАЕМ НАСТРОЙКИ ПРИ ЗАПУСКЕ
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      final settingsProvider = context.read<SettingsProvider> ();
+      settingsProvider.loadSettings();
+    });
   }
 
   // АСИНХРОННЫЙ МЕТОД ДЛЯ ЗАГРУЗКИ ДАННЫХ
@@ -56,6 +65,20 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
         title: const Text('Мои тренировки'),
         centerTitle: true,
         actions: [
+          // КНОПКА НАСТРОЕК
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.settings),
+              tooltip: 'Настройка',
+          ),
+
           // КНОПКА СТАТИСТИКИ
           IconButton(
             onPressed: () => _openStats(),

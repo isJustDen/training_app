@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../services/sound_service.dart';
 
 // ВИДЖЕТ ТАЙМЕРА ОТСЧЕТА
 class TimerWidget extends StatefulWidget {
@@ -41,7 +42,7 @@ class _TimerWidgetState extends State<TimerWidget>{
   // ЗАПУСК ТАЙМЕРА
   void _startTimer() {
     // Timer.periodic - создает таймер, который срабатывает периодически
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       // ЕСЛИ ВИДЖЕТ УДАЛЕН - ОСТАНАВЛИВАЕМ ТАЙМЕР
       if (!mounted) {
         timer.cancel();
@@ -56,6 +57,10 @@ class _TimerWidgetState extends State<TimerWidget>{
       // ЕСЛИ ВРЕМЯ ВЫШЛО
       if (_remainingTime <= 0) {
         timer.cancel();
+
+        // ВОСПРОИЗВОДИМ ЗВУК С ИСПОЛЬЗОВАНИЕМ НОВОГО СЕРВИСА
+        await SoundService.playTimerSound(context);
+
         widget.onComplete();
         return;
       }

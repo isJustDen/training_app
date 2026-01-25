@@ -1,7 +1,7 @@
 //screens/stats_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:training_app/models/exercise.dart';
+import '../models/exercise.dart';
 import '../services/storage_service.dart';
 import '../services/stats_service.dart';
 import '../models/workout_history.dart';

@@ -150,7 +150,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
             const SizedBox(width: 8),
             Chip(
               label: Text('${_template.exercises.length}'),
-              backgroundColor: Colors.blue.shade100,
+              backgroundColor: Colors.green.shade200,
             ),
           ],
         ),
@@ -214,7 +214,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: Colors.blue.shade100,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -222,7 +222,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                       '${index + 1}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Colors.deepPurpleAccent,
                       ),
                     ),
                   ),
@@ -239,6 +239,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                       ),
                     ),
                 ),
+
                 // КНОПКИ ДЕЙСТВИЙ
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -281,6 +282,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                       _buildParamChip('${exercise.restTime ~/ 60} m', Icons.timer),
                       const SizedBox(width: 5),
                     ],
+
                   ),
 
                   // РАСЧЕТ ОБЪЕМА (добавим позже)
@@ -315,7 +317,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           Text(text),
         ],
       ),
-      backgroundColor: Colors.grey.shade100,
+      // backgroundColor: Colors.grey.shade600,
       labelPadding: const EdgeInsets.symmetric(horizontal: 2),
       visualDensity: VisualDensity.compact,
     );

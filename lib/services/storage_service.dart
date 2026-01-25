@@ -294,4 +294,11 @@ class StorageService {
     history.add(workout);
     await saveHistory(history);
   }
+
+  // СТАТИЧЕСКИЙ МЕТОД ДЛЯ ДОСТУПА К PREFERENCES
+  static Future<SharedPreferences> getPrefs() async{
+    return await SharedPreferences.getInstance();
+  }
+
+
 }

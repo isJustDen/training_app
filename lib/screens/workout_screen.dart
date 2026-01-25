@@ -7,6 +7,8 @@ import '../widgets/timer_widget.dart';
 import '../services/storage_service.dart';
 import '../models/workout_history.dart';
 import '../models/exercise.dart';
+import '../services/history_service.dart';
+import '../services/sound_service.dart';
 
 
 // ЭКРАН АКТИВНОЙ ТРЕНИРОВКИ
@@ -27,6 +29,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   // СПИСОК ДЛЯ ОТСЛЕЖИВАНИЯ ПРОГРЕССА КАЖДОГО УПРАЖНЕНИЯ
   late List<ExerciseProgress> _exercisesProgress;
 
+  // ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ Последние результаты и Средние показатели:
+  late Map<String, Exercise?> _lastExerciseResults;
+  late Map <String, Map<String, dynamic>> _averageStats;
+
   // ТАЙМЕР ОТДЫХА
   int _restTimeRemaining = 0;
   bool _isResting = false;
@@ -45,7 +51,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   // ИНИЦИАЛИЗАЦИЯ ТРЕНИРОВКИ
-  void _initializeWorkout(){
+  void _initializeWorkout() async{
     // Запоминаем время начала
     _workoutStartTime = DateTime.now();
 
@@ -57,11 +63,36 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       );
     }).toList();
 
+    // ЗАГРУЖАЕМ ИСТОРИЧЕСКИЕ ДАННЫЕ ДЛЯ КАЖДОГО УПРАЖНЕНИЯ
+    await _loadExerciseHistory();
+
     print('Тренировка начата: ${widget.template.name}');
   }
 
-  @override
+  //МЕТОД ДЛЯ ЗАГРУЗКИ ИСТОРИИ
+  Future<void> _loadExerciseHistory() async{
+    _lastExerciseResults = {};
+    _averageStats = {};
 
+    for(var progress in _exercisesProgress){
+      final exerciseName = progress.exercise.name;
+
+      // ПОЛУЧАЕМ ПОСЛЕДНИЙ РЕЗУЛЬТАТ
+      final lastResult = await HistoryService.getLastExerciseResult(exerciseName);
+      if (lastResult != null) {
+        _lastExerciseResults[exerciseName] = lastResult;
+      }
+
+      // ПОЛУЧАЕМ СРЕДНИЕ ПОКАЗАТЕЛИ
+      final averageStats = await HistoryService.getAverageExerciseStats(
+          exerciseName,
+          3
+      );
+      _averageStats[exerciseName] = averageStats;
+    }
+  }
+
+  @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: _buildAppBar(),
@@ -125,6 +156,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         final progress = _exercisesProgress[index];
         final exercise = progress.exercise;
         final isCurrent = index == _currentExerciseIndex;
+        final exerciseName = exercise.name;
+
+        // ПОЛУЧАЕМ ИСТОРИЧЕСКИЕ ДАННЫЕ ДЛЯ ЭТОГО УПРАЖНЕНИЯ
+        final lastResult = _lastExerciseResults[exerciseName];
+        final averageStats = _averageStats[exerciseName];
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -164,12 +200,21 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                     // НАЗВАНИЕ УПРАЖНЕНИЯ
                     Expanded(
-                        child: Text(
-                          exercise.name,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                            exercise.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                            ),
                           ),
+
+                            // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
+                            if (lastResult != null)
+                              _buildHistoryIndicator(exercise, lastResult),
+                          ],
                         ),
                     ),
                   ],
@@ -418,7 +463,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 Text(
                   '${_exercisesProgress[_currentExerciseIndex].exercise.name}',
                   style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 8,
                       fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -656,6 +701,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               onPressed : () => Navigator.pop(context),
               child: const Text('Продолжить'),
             ),
+
+            // КНОПКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
             ElevatedButton(
               onPressed: () async {
                 // СОЗДАЕМ ЗАПИСЬ В ИСТОРИИ
@@ -678,6 +725,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                 // СОХРАНЯЕМ В ИСТОРИЮ
                 await StorageService.addToHistory(workoutHistory);
+
+                // ВОСПРОИЗВОДИМ ЗВУК ЗАВЕРШЕНИЯ
+                await SoundService.playWorkoutCompleteSound(context);
 
                 print('Тренировка сохранена в историю!');
                 Navigator.pop(context); //Закрыть диалог
@@ -738,5 +788,66 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     );
   }
 
+  //МЕТОД ДЛЯ ПОКАЗА ИСТОРИЧЕСКИХ ДАННЫХ
+  Widget _buildHistoryIndicator(Exercise current, Exercise lastResult){
+    final weightDiff = current.weight - lastResult.weight;
+    final repsDiff = current.reps - lastResult.reps;
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        // ИНФОРМАЦИЯ О ПРОШЛОЙ ТРЕНИРОВКЕ
+        Row(
+          children: [
+            const Icon(Icons.history, size: 12, color: Colors.grey),
+            const SizedBox(width: 4),
+            Text(
+              'Прошлый раз: ${lastResult.weight} кг × ${lastResult.reps} ',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            )
+          ],
+        ),
+        // ИНДИКАТОР ИЗМЕНЕНИЙ
+        if (weightDiff != 0 || repsDiff != 0)
+          Row(
+            children: [
+              // ИЗМЕНЕНИЕ ВЕСА
+              if (weightDiff > 0)
+                _buildChangeIndicator('+${weightDiff.toStringAsFixed(1)}кг', Colors.green)
+              else if (weightDiff < 0)
+                _buildChangeIndicator('${weightDiff.toStringAsFixed(1)}кг', Colors.red),
+
+              const SizedBox(width: 8),
+
+              // ИЗМЕНЕНИЕ ПОВТОРЕНИЙ
+              if (repsDiff > 0)
+                _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
+              else if (repsDiff < 0)
+                _buildChangeIndicator('${repsDiff} повт', Colors.red),
+            ],
+          ),
+      ],
+    );
+  }
+
+  // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ИНДИКАТОРА ИЗМЕНЕНИЙ
+  Widget _buildChangeIndicator(String text, Color color){
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
 }
