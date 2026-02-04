@@ -7,34 +7,63 @@ import '../models/exercise.dart';
 // СЕРВИС ДЛЯ РАСЧЕТА СТАТИСТИКИ И ЭФФЕКТИВНОСТИ
 class StatsService {
   // РАСЧЕТ ЭФФЕКТИВНОСТИ ДЛЯ ОДНОГО УПРАЖНЕНИЯ
-  // Формула: (текущие повторения / средние повторения) × 100%
-  static double calculateEfficiency({
-    required List<WorkoutHistory> history,
-    required String exerciseName,
-    required int currentReps,
+    static double calculateEfficiency({
+      required List<WorkoutHistory> history,
+      required String exerciseName,
+      required int currentReps,
+      required int currentSets,
+      required double currentWeight,
   }) {
+      print('Анализ эффективности для: $exerciseName');
+      print('Текущие значения: $currentSets подходов, $currentReps повторений, $currentWeight кг');
+
+      // РАССЧИТЫВАЕМ ТЕКУЩИЙ ОБЪЁМ
+      double currentVolume = currentWeight * currentSets * currentReps;
+      print('Текущий объём: $currentVolume кг (вес*подходы*повторения)');
+
     // 1. СОБИРАЕМ ВСЕ ИСТОРИЧЕСКИЕ ДАННЫЕ ПО ЭТОМУ УПРАЖНЕНИЮ
-    List<int> historicalReps = [];
+    List<double> historicalVolumes = [];
 
     for  (var workout in history) {
       for (var exercise in workout.exercises){
-        if (exercise.name == exerciseName && exercise.reps > 0){
-          historicalReps.add(exercise.reps);
+        if (exercise.name == exerciseName && exercise.sets > 0 && exercise.reps > 0) {
+          double volume = exercise.weight * exercise.sets * exercise.reps;
+          historicalVolumes.add(volume);
+          print('   Найдено:${exercise.sets} * ${exercise.reps} * ${exercise.weight} кг =  ${volume.toStringAsFixed(1)} кг');
         }
       }
     }
 
-    // 2. ЕСЛИ ИСТОРИЧЕСКИХ ДАННЫХ НЕТ - ВОЗВРАЩАЕМ 100%
-    if (historicalReps.isEmpty){
-      return 100.0;
+    print('    Исторические объёмы: $historicalVolumes');
+
+    //Если текущие повторения 0 - сразу возвращаем 0% эффективности
+    if (currentReps == 0){
+      print('Текущие повторения = 0. Возвращаем 0%');
+      return 0.0;
     }
 
 
-    // 3. РАССЧИТЫВАЕМ СРЕДНЕЕ КОЛИЧЕСТВО ПОВТОРЕНИЙ
-    double averageReps = historicalReps.reduce((a,b) => a+b)/historicalReps.length;
+    // 2. ЕСЛИ ИСТОРИЧЕСКИХ ДАННЫХ НЕТ - ВОЗВРАЩАЕМ 100%
+    if (historicalVolumes.isEmpty){
+      print('Нет истоических данных. Возвращаем 100%');
+      return 100.0;
+    }
+
+    // ФИЛЬТРУЕМ нулевые значения для расчета среднего (но храним их в истории)
+    List<double>nonZeroHistoricalVolumes = historicalVolumes.where((volume) => volume>0).toList();
+
+    if(nonZeroHistoricalVolumes.isEmpty){
+      print('Все исторические значения = 0. Текущие >0. Возвращаем 200 процентво как бонус');
+      return 200.0;
+    }
+
+    // 3. РАССЧИТЫВАЕМ СРЕДНЕЕ КОЛИЧЕСТВО ПОВТОРЕНИЙ только по ненулевым значениям
+    double averageVolume = nonZeroHistoricalVolumes.reduce((a,b) => a+b)/nonZeroHistoricalVolumes.length;
+    print('Средние повторения (без нулей): ${averageVolume.toStringAsFixed(1)}');
 
     // 4. РАССЧИТЫВАЕМ ЭФФЕКТИВНОСТЬ
-    double efficiency = (currentReps/averageReps) * 100;
+    double efficiency = (currentVolume/averageVolume) * 100;
+    print('Эффективность:${efficiency.toStringAsFixed(1)} ');
 
     // 5. ОКРУГЛЯЕМ ДО 1 ЗНАКА ПОСЛЕ ЗАПЯТОЙ
     return double.parse(efficiency.toStringAsFixed(1));
@@ -137,27 +166,101 @@ class StatsService {
   }) {
   Map<String, ExerciseStats> stats = {};
 
-  for (var exercise in currentExercises) {
-    stats[exercise.name] = ExerciseStats(
+  // Получаем реальные значения из последней тренировки
+  final lastWorkoutValues = getLastWorkoutValues(history);
+
+  for (var templateExercise in currentExercises) {
+    final exerciseName = templateExercise.name;
+    final realExercise = lastWorkoutValues[exerciseName] ?? templateExercise;
+
+    stats[exerciseName] = ExerciseStats(
       efficiency: calculateEfficiency(
           history: history,
-          exerciseName: exercise.name,
-          currentReps: exercise.reps,
+          exerciseName: exerciseName,
+          currentReps: realExercise.reps, // Используем реальные повторения
+          currentSets: realExercise.sets,
+          currentWeight: realExercise.weight,
       ),
       averageWeight: getAverangeWeight(
           history: history,
-          exerciseName: exercise.name,
+          exerciseName: exerciseName,
       ),
       progress: calculateProgress(
           history: history,
-          exerciseName: exercise.name,
-          currentValue: exercise.reps,
+          exerciseName: exerciseName,
+          currentValue: realExercise.reps,
           valueType: ValueType.reps,
       ),
+      volumeProgress: calculateVolumeProgress(
+          history: history,
+          exerciseName: exerciseName,
+          currentReps: realExercise.reps,
+          currentSets: realExercise.sets,
+          currentWeight: realExercise.weight),
     );
   }
 
   return stats;
+  }
+
+  // ПОЛУЧИТЬ РЕАЛЬНЫЕ ЗНАЧЕНИЯ ИЗ ПОСЛЕДНЕЙ ТРЕНИРОВКИ
+  static Map<String, Exercise> getLastWorkoutValues(List<WorkoutHistory> history){
+    Map<String, Exercise> lastValues = {};
+
+    if (history.isEmpty) return lastValues;
+
+    final sortedHistory = List<WorkoutHistory>.from(history)
+      .. sort((a, b) => b.date.compareTo(a.date));
+
+    final lastWorkout = sortedHistory.first;
+
+    for(var exercise in lastWorkout.exercises){
+      lastValues[exercise.name] = exercise;
+    }
+
+    return lastValues;
+  }
+
+  //МЕТОДЫ РАСЧЁТА УРОВНЯ ПРОГРЕССА
+  static double calculateVolumeProgress({
+    required List<WorkoutHistory> history,
+    required String exerciseName,
+    required int currentReps,
+    required int currentSets,
+    required double currentWeight,
+  }){
+      if (history.length < 2) return 0.0;
+
+    // СОРТИРУЕМ ИСТОРИЮ ПО ДАТЕ
+    final sortedHistory = List<WorkoutHistory>.from(history)
+      ..sort((a,b) => a.date.compareTo(b.date));
+
+    // ИЩЕМ ПОСЛЕДНИЕ 2 ЗНАЧЕНИЯ ОБЪЁМА
+    List<double> lastVolumes = [];
+
+    for (var workout in sortedHistory.reversed){
+      for (var exercise in workout.exercises){
+        if (exercise.name == exerciseName && exercise.sets > 0 && exercise.reps > 0) {
+          double volume = exercise.weight * exercise.sets * exercise.reps;
+          lastVolumes.add(volume);
+          if (lastVolumes.length >= 2) break;
+        }
+      }
+      if (lastVolumes.length >= 2) break;
+    }
+
+    if (lastVolumes.length < 2) return 0.0;
+
+    // ТЕКУЩИЙ ОБЪЁМ
+    double  currentVolume = currentWeight * currentSets * currentReps;
+
+    // ПРЕДЫДУЩИЙ ОБЪЁМ
+    double previousVolume = lastVolumes[1];
+
+    // РАССЧИТЫВАЕМ ПРОГРЕСС
+    double progress = ((currentVolume - previousVolume) / previousVolume) * 100;
+
+    return double.parse(progress.toStringAsFixed(1));
   }
 }
 
@@ -166,11 +269,13 @@ class ExerciseStats{
   double efficiency;
   double averageWeight;
   double progress;
+  double volumeProgress;
 
   ExerciseStats ({
     required this.efficiency,
     required this.progress,
     required this.averageWeight,
+    this.volumeProgress = 0.0,
   });
 }
 

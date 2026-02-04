@@ -58,7 +58,7 @@ class SoundService {
     );
 
     if (!settingsProvider.settings.soundEnabled) {
-      print('Звук отклбчён в настройках');
+      print('Звук отключён в настройках');
       return;
     }
 
