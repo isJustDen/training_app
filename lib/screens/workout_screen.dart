@@ -4,6 +4,7 @@ import '../models/set_result.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
+import '../services/notification_service.dart';
 import '../widgets/timer_widget.dart';
 import '../services/storage_service.dart';
 import '../models/workout_history.dart';
@@ -757,6 +758,13 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                 // ВОСПРОИЗВОДИМ ЗВУК ЗАВЕРШЕНИЯ
                 await SoundService.playWorkoutCompleteSound(context);
+
+                // ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ О ЗАВЕРШЕНИИ ТРЕНИРОВКИ (ДОБАВЛЕНО)
+                final notificationService = NotificationService();
+                await notificationService.showWorkoutCompleteNotification(
+                  title: 'Тренировка завершена!',
+                  body: '${widget.template.name}. Продолжительность: ${minutes} минут(ы) ${seconds} секунд(ы)',
+                );
 
                 print('Тренировка сохранена в историю!');
                 Navigator.pop(context); //Закрыть диалог

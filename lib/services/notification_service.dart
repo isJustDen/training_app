@@ -107,6 +107,9 @@ class NotificationService {
         autoCancel: true,               // Автоматически закрывать при нажатии
         enableVibration: true,          // Включить вибрацию
         playSound: true,                // Воспроизводить звук
+        timeoutAfter: 10000,
+        ticker: 'Таймер завершён',
+        styleInformation: DefaultStyleInformation(true, true),
       );
 
       // ДЕТАЛИ ДЛЯ iOS
