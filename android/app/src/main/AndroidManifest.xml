@@ -1,4 +1,20 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- РАЗРЕШЕНИЯ ДЛЯ УВЕДОМЛЕНИЙ -->
+    <!-- Базовое разрешение на отправку уведомлений (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Разрешение на вибрацию -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!-- Разрешение на точные будильники (для точных уведомлений) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
+    <!-- Разрешение на получение статуса будильников -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"
+        tools:ignore="ExactAlarm" />
+
     <application
         android:label="training_app"
         android:name="${applicationName}"
@@ -25,6 +41,24 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- РЕСИВЕР ДЛЯ УВЕДОМЛЕНИЙ -->
+        <!-- Это нужно для обработки уведомлений в фоне -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false"
+            tools:ignore="MissingClass" />
+
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

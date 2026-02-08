@@ -9,7 +9,12 @@ import '../models/workout_history.dart';
 
 // ЭКРАН СТАТИСТИКИ И ПРОГРЕССА
 class StatsScreen extends StatefulWidget{
-  const StatsScreen({super.key});
+  final List<Exercise>? currentExercises;
+
+  const StatsScreen({
+    super.key,
+    this.currentExercises,
+  });
 
   @override
   State<StatsScreen> createState() => _StatsScreenState();
@@ -42,34 +47,57 @@ class _StatsScreenState extends State<StatsScreen>{
     _workoutHistory = history
         .where((workout) => workout.date.isAfter(cutoffDate))
         .toList();
+    print('история загружена: ${_workoutHistory.length} тренировок');
 
-    // 3. СОБИРАЕМ ВСЕ УНИКАЛЬНЫЕ УПРАЖНЕНИЯ
-    final allExercises = _getAllExercisesFromHistory();
+    // 3. ПОЛУЧАЕМ ТЕКУЩИЕ УПРАЖНЕНИЯ
+    List<Exercise> currentExercise;
+
+    if (widget.currentExercises != null && widget.currentExercises!.isNotEmpty){
+      currentExercise = widget.currentExercises!;
+      print('Используем ${currentExercise.length} упражнений и шаблонов');
+    } else {
+      currentExercise = _getCurrentExercisesFromLastWorkout();
+      print('Используем ${currentExercise.length} упражнений из истории');
+    }
 
     // 4. РАССЧИТЫВАЕМ СТАТИСТИКУ
-    if (allExercises.isNotEmpty) {
+    if (currentExercise.isNotEmpty) {
       _exerciseStats = StatsService.getAllExercisesStats(
           history: _workoutHistory,
-          currentExercises: allExercises
+          currentExercises: currentExercise
       );
+      print('Статистика расчитана для ${_exerciseStats.length} упражнений');
+    } else {
+      print('Нет упражнений для расчёта статистики');
+      _exerciseStats = {};
     }
+
     setState(() => _isLoading = false);
   }
 
-  // ПОЛУЧИТЬ ВСЕ УНИКАЛЬНЫЕ УПРАЖНЕНИЯ ИЗ ИСТОРИИ
-  List<Exercise> _getAllExercisesFromHistory(){
-    Set<String> uniqueNames = {};
-    List<Exercise> allExercises = [];
+  // // ПОЛУЧИТЬ ВСЕ УНИКАЛЬНЫЕ УПРАЖНЕНИЯ ИЗ ИСТОРИИ
+  // List<Exercise> _getAllExercisesFromHistory(){
+  //   Set<String> uniqueNames = {};
+  //   List<Exercise> allExercises = [];
+  //
+  //   for (var workout in _workoutHistory){
+  //     for (var exercise in workout.exercises){
+  //       if (!uniqueNames.contains(exercise.name)){
+  //         uniqueNames.add(exercise.name);
+  //         allExercises.add(exercise);
+  //       }
+  //     }
+  //   }
+  //   return allExercises;
+  // }
 
-    for (var workout in _workoutHistory){
-      for (var exercise in workout.exercises){
-        if (!uniqueNames.contains(exercise.name)){
-          uniqueNames.add(exercise.name);
-          allExercises.add(exercise);
-        }
-      }
-    }
-    return allExercises;
+  // ПОЛУЧИТЬ УПРАЖНЕНИЯ ИЗ ПОСЛЕДНЕЙ ТРЕНИРОВКИ
+  List<Exercise> _getCurrentExercisesFromLastWorkout(){
+    if (_workoutHistory.isEmpty) return [];
+
+    _workoutHistory.sort((a, b) => b.date.compareTo(a.date));  // Сортируем по дате (новые первыми)
+
+    return _workoutHistory.first.exercises;
   }
 
   @override
@@ -266,7 +294,14 @@ class _StatsScreenState extends State<StatsScreen>{
   // СТАТИСТИКА ПО УПРАЖНЕНИЯМ
   Widget _buildExercisesState(){
     if (_exerciseStats.isEmpty){
-      return const Center(child: Text('Нет данных по упражнениям'));
+      return Column(
+        children: [
+          const Center(child: Text('Нет данных по упражнениям')),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _loadData, child: const Text('Обновить данные'),
+          ),
+        ],
+      );
     }
 
     return Column(
@@ -277,9 +312,13 @@ class _StatsScreenState extends State<StatsScreen>{
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Эффективность = (текущие повторения / средние повторения) × 100% ',
           style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        Text(
+          'Найдено ${_exerciseStats.length} упражнений',
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         const SizedBox(height: 16),
 

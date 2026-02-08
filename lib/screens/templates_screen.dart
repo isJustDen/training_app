@@ -1,5 +1,6 @@
 //lib/screens/templates_screen.dart
 
+import 'package:Training_JournalApp/models/exercise.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../services/storage_service.dart';
@@ -327,12 +328,27 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
-  //МЕТОД СТАТИСТИКИ
+//МЕТОД СТАТИСТИКИ
   void _openStats(){
+    // Собираем все упражнения из всех шаблонов
+    List<Exercise> allExercises = [];
+    for (var template in _templates) {
+      allExercises.addAll(template.exercises);
+    }
+    // Убираем дубликаты по названию
+    Map<String, Exercise> uniqueExercises = {};
+    for (var exercise in allExercises){
+      if (!uniqueExercises.containsKey(exercise.name)) {
+        uniqueExercises[exercise.name] = exercise;
+      }
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => const StatsScreen(),
+        builder: (context) => StatsScreen(
+          currentExercises: uniqueExercises.values.toList(),
+          ),
       ),
     );
   }

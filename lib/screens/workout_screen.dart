@@ -1,5 +1,6 @@
 //screens/workout_screen.dart
 
+import 'package:Training_JournalApp/models/set_result.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
@@ -59,7 +60,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     _exercisesProgress = widget.template.exercises.map((exercise){
       return ExerciseProgress(
           exercise: exercise,
-          currentWeight: exercise.weight
+          currentWeight: exercise.weight,
+        currentReps: 0,
       );
     }).toList();
 
@@ -239,7 +241,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     // ПОДХОДЫ
                     _buildParameterCard(
                       title: 'Подходы',
-                      value: '${progress.completedSets}/${exercise.sets}',
+                      value: '${progress.completedSetsCount}/${exercise.sets}',
                       icon: Icons.repeat,
                       color: progress.isCompleted ? Colors.green: null,
                     ),
@@ -247,7 +249,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     // ПОВТОРЕНИЯ
                     _buildParameterCard(
                       title: 'Повторения',
-                      value: '${progress.completedReps}',
+                      value: '${progress.currentReps}',
                       icon: Icons.repeat_one,
                       onIncrement: () => _incrementReps(index),
                       onDecrement: () => _decrementReps(index),
@@ -519,20 +521,20 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   // УВЕЛИЧЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
   void _incrementReps(int index){
     setState(() {
-      final currentReps = _exercisesProgress[index].completedReps;
+      final currentReps = _exercisesProgress[index].currentReps;
       _exercisesProgress[index] = _exercisesProgress[index].copyWith(
-        completedReps: currentReps + 1,
+        currentReps: currentReps + 1,
       );
     });
   }
 
   // УМЕНЬШЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
   void _decrementReps(int index) {
-    if (_exercisesProgress[index].completedReps > 0) {
+    if (_exercisesProgress[index].currentReps > 0) {
       setState(() {
-        final currentReps = _exercisesProgress[index].completedReps;
+        final currentReps = _exercisesProgress[index].currentReps;
         _exercisesProgress[index] = _exercisesProgress[index].copyWith(
-          completedReps: currentReps - 1,
+          currentReps: currentReps - 1,
         );
       });
     }
@@ -540,13 +542,23 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ЗАВЕРШЕНИЕ ПОДХОДА
   void _completeSet(int index) {
-    setState(() {
-      final currentSets = _exercisesProgress[index].completedSets;
-      _exercisesProgress[index] = _exercisesProgress[index].copyWith(
-        completedSets: currentSets + 1,
-        completedReps: 0, // Сбрасываем повторения для нового подхода
+    final progress = _exercisesProgress[index];
+
+    if (progress.currentReps == 0){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Укажите количетво повторений для ${progress.exercise.name}'),
+            backgroundColor: Colors.orange,
+        ),
       );
+      return;
+    }
+
+    setState(() {
+      // Добавляем подход с фактическими повторениями
+      progress.addCompletedSet(progress.currentReps, progress.currentWeight);
     });
+
     // предложение отдыха после завершения подхода
     _showRestPrompt(index);
   }
@@ -562,7 +574,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         builder: (context) => AlertDialog(
           title: const Text('Отдых'),
           content: Text(
-              'Выполнен подход ${_exercisesProgress[index].completedSets}/${exercise.sets}\n'
+              'Выполнен подход ${_exercisesProgress[index].completedSetsCount}/${exercise.sets}\n'
                   'Хотите запустить таймер отдыха?'
           ),
           actions: [
@@ -687,7 +699,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     final duration = DateTime.now().difference(_workoutStartTime);
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
-    final formattedSeconds = seconds.toString().padLeft(2, '0');
 
     showDialog(
         context: context,
@@ -705,21 +716,37 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             // КНОПКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
             ElevatedButton(
               onPressed: () async {
+
+                // СОЗДАЕМ СПИСОК УПРАЖНЕНИЙ С ПРАВИЛЬНЫМИ ДАННЫМИ
+                List<Exercise> completedExercises = [];
+
+                // ПРОХОДИМ ПО ВСЕМ УПРАЖНЕНИЯМ И СОБИРАЕМ ДАННЫЕ
+                for(var progress in _exercisesProgress){
+                  // РАССЧИТЫВАЕМ ОБЩЕЕ КОЛИЧЕСТВО ПОВТОРЕНИЙ
+                  int totalReps = progress.totalReps;
+                  // ДОБАВЛЯЕМ В СПИСОК
+                  completedExercises.add(Exercise(
+                    id: progress.exercise.id,
+                    name: progress.exercise.name,
+                    weight: progress.currentWeight,
+                    sets: progress.completedSets.length,
+                    reps: totalReps,
+                    restTime: progress.exercise.restTime,
+                  ));
+
+                  print('${progress.exercise.name}:'
+                      '${progress.completedSets} подхода * ${progress.currentReps} повторений ='
+                      '$totalReps всего повторений');
+
+
+                }
+
                 // СОЗДАЕМ ЗАПИСЬ В ИСТОРИИ
                 final workoutHistory = WorkoutHistory(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   templateId: widget.template.id,
                   date: DateTime.now(),
-                  exercises: _exercisesProgress
-                      .map((progress) => Exercise(
-                      id: progress.exercise.id,
-                      name: progress.exercise.name,
-                      weight: progress.currentWeight,
-                      sets: progress.completedSets,
-                      reps: progress.completedReps,
-                      restTime: progress.exercise.restTime,
-                      ))
-                      .toList(),
+                  exercises: completedExercises,
                   duration: duration.inSeconds,
                 );
 
@@ -741,7 +768,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 );
 
                 // ЗАДЕРЖКА ДЛЯ ПОКАЗА SNACKBAR
-                await Future.delayed(const Duration(milliseconds: 1500));
+                await Future.delayed(const Duration(milliseconds: 2000));
 
                 Navigator.pop(context); // вернуться к списку тренировок
               },
