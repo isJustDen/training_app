@@ -1,5 +1,6 @@
 //widgets/timer_widget.dart
 
+import '../services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/sound_service.dart';
@@ -9,12 +10,14 @@ class TimerWidget extends StatefulWidget {
   final int initialTime;
   final VoidCallback onComplete;
   final VoidCallback? onSkip;
+  final String exerciseName;
 
   const TimerWidget({
     super.key,
     required this.initialTime,
     required this.onComplete,
     this.onSkip,
+    this.exerciseName = 'Отдых',
   });
 
   @override
@@ -41,6 +44,8 @@ class _TimerWidgetState extends State<TimerWidget>{
 
   // ЗАПУСК ТАЙМЕРА
   void _startTimer() {
+    // ВОСПРОИЗВОДИМ ЗВУК ПРИ ЗАПУСКЕ ТАЙМЕРА (ТОЛЬКО 1 РАЗ)
+    SoundService.playTimerStartSound(context);
     // Timer.periodic - создает таймер, который срабатывает периодически
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       // ЕСЛИ ВИДЖЕТ УДАЛЕН - ОСТАНАВЛИВАЕМ ТАЙМЕР
@@ -58,14 +63,27 @@ class _TimerWidgetState extends State<TimerWidget>{
       if (_remainingTime <= 0) {
         timer.cancel();
 
-        // ВОСПРОИЗВОДИМ ЗВУК С ИСПОЛЬЗОВАНИЕМ НОВОГО СЕРВИСА
-        await SoundService.playTimerSound(context);
+        await _showCompleteNotification();
 
         widget.onComplete();
         return;
       }
       setState(() {});
     });
+  }
+
+  // ПОКАЗ УВЕДОМЛЕНИЯ О ЗАВЕРШЕНИИ
+  Future<void> _showCompleteNotification() async {
+
+  //ОСТАНАВЛИВАЕМ ТАЙМЕР ПРИ УДАЛЕНИИ ВИДЖЕТА
+    try {
+      await NotificationService().showTimerCompleteNotification(
+        title: 'Таймер завершен',
+        body: 'Отдых после ${widget.exerciseName} завершен. Возвращайтесь к тренировке!',
+      );
+    } catch (e) {
+      print('⚠Ошибка показа уведомления: $e');
+    }
   }
 
   //ОСТАНАВЛИВАЕМ ТАЙМЕР ПРИ УДАЛЕНИИ ВИДЖЕТА
@@ -113,14 +131,28 @@ class _TimerWidgetState extends State<TimerWidget>{
                       color: Colors.orange,
                     ),
                   ),
+                  const SizedBox(height: 4,),
+                  Text(
+                    'Уведомление придет по завершению',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
                 ],
               ),
           ),
 
-          // КНОПКА ПРОПУСКА (если предоставлена)
+          // КНОПКА ПРОПУСКА
           if (widget.onSkip != null)
             IconButton(
-                onPressed: widget.onSkip,
+                 onPressed: () {
+                //   // ОТМЕНЯЕМ УВЕДОМЛЕНИЕ ПРИ ПРОПУСКЕ
+                //   NotificationService.cancelScheduledNotification(
+                //     widget.exerciseName.hashCode,
+                //   );
+                  widget.onSkip!();
+                },
                 icon: const Icon(Icons.skip_next, color: Colors.orange),
                 tooltip: 'Пропустить отдых',
             ),

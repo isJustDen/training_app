@@ -26,6 +26,30 @@ class SoundService {
     }
   }
 
+  // ВОСПРОИЗВЕДЕНИЕ ЗВУКА НАЧАЛА ТАЙМЕРА
+  static Future<void> playTimerStartSound(BuildContext context) async {
+    // ПРОВЕРЯЕМ, ВКЛЮЧЕН ЛИ ЗВУК В НАСТРОЙКАХ
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+
+    if (!settingsProvider.settings.soundEnabled){
+      print('Звук отключён в настройках');
+      return;
+    }
+
+    try{
+      print('Пытаюсь воспроизвести звук таймера...');
+      await _player.stop(); //остановка предыдущего звука
+      await _player.play(AssetSource('sounds/start_timer.mp3'));
+      print('Звук таймера воспроизведён');
+    } catch (e) {
+      print('Ошибка вопроизведения $e');
+      _playFallBackNotification();
+    }
+  }
+
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА ТАЙМЕРА
   static Future<void> playTimerSound(BuildContext context) async {
     // ПРОВЕРЯЕМ, ВКЛЮЧЕН ЛИ ЗВУК В НАСТРОЙКАХ

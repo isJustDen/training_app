@@ -67,4 +67,12 @@ class SettingsProvider extends ChangeNotifier{
     await saveSettings();
     notifyListeners();
   }
+  // МЕТОД ДЛЯ ПЕРЕКЛЮЧЕНИЯ УВЕДОМЛЕНИЙ:
+  Future<void> toggleNotifications() async {
+    _settings = _settings.copyWith(
+      notificationEnabled: !_settings.notificationEnabled
+    );
+    await saveSettings();
+    notifyListeners();
+  }
 }

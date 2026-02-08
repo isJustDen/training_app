@@ -1,6 +1,6 @@
 //lib/screens/templates_screen.dart
 
-import 'package:Training_JournalApp/models/exercise.dart';
+import '../models/exercise.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../services/storage_service.dart';

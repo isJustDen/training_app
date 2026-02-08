@@ -1,4 +1,5 @@
 // main.dart
+import '../services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'screens/templates_screen.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,22 @@ import 'providers/settings_provider.dart';
 // ГЛАВНАЯ ФУНКЦИЯ
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+
+  try{
+  // ИНИЦИАЛИЗИРУЕМ СЕРВИС УВЕДОМЛЕНИЙ
+  await NotificationService().initialize();
+  // ЗАПРАШИВАЕМ РАЗРЕШЕНИЯ (для Android 13+ и iOS)
+  final hasPermission = await NotificationService().requestPermissions();
+
+  if (hasPermission) {
+    print('Разрешения на уведомления получены');
+  } else {
+    print('Разрешения на уведомления не получены');
+  }
+  } catch (e) {
+    print('Ошибка инициализации уведомлений: $e');
+  }
+
   runApp(
     MultiProvider(
         providers: [

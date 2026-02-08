@@ -1,6 +1,6 @@
 //models/workout_progress.dart
 
-import 'package:Training_JournalApp/models/set_result.dart';
+import 'set_result.dart';
 
 import 'exercise.dart';
 

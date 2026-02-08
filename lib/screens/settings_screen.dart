@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
 
 // ЭКРАН НАСТРОЕК ПРИЛОЖЕНИЯ
 class SettingsScreen extends StatefulWidget{
@@ -69,6 +70,20 @@ class _SettingsScreenState extends State<SettingsScreen>{
             ),
           ),
           const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.notifications),
+              title: const Text('Уведомления'),
+              subtitle: const Text('Уведомления о завершении таймера'),
+              trailing: Switch(
+                value: settings.notificationEnabled,
+                onChanged: (value) async {
+                  await settingsProvider.toggleNotifications();
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
 
           // РАЗДЕЛ: ТРЕНИРОВКА
           _buildSectionHeader('Тренировка'),
@@ -96,7 +111,6 @@ class _SettingsScreenState extends State<SettingsScreen>{
               ],
             ),
           ),
-          const SizedBox(height: 8),
 
           // РАЗДЕЛ: ДАННЫЕ
           _buildSectionHeader('Данные'),

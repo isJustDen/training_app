@@ -1,6 +1,6 @@
 //screens/workout_screen.dart
 
-import 'package:Training_JournalApp/models/set_result.dart';
+import '../models/set_result.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
@@ -140,6 +140,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             initialTime: _restTimeRemaining,
             onComplete: _endRestPeriod,
             onSkip: _endRestPeriod,
+            // ДОБАВЛЯЕМ НАЗВАНИЕ УПРАЖНЕНИЯ ДЛЯ УВЕДОМЛЕНИЯ
+            exerciseName: _exercisesProgress[_currentExerciseIndex].exercise.name,
           ),
 
         // ТАБЛИЦА УПРАЖНЕНИЙ
