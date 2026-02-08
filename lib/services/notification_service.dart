@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
-import 'package:workout_app/providers/settings_provider.dart';
+import '../providers/settings_provider.dart';
 
 // СЕРВИС ДЛЯ УПРАВЛЕНИЯ УВЕДОМЛЕНИЯМИ
 class NotificationService {

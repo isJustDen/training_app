@@ -48,7 +48,7 @@ class WorkoutApp extends StatelessWidget {
     final settingsProvider = Provider.of<SettingsProvider>(context);
 
     return MaterialApp(
-      title: 'Тренировки', //Название приложения
+      title: 'FitFlow', //Название приложения
 
       // ДИНАМИЧЕСКАЯ ТЕМА НА ОСНОВЕ НАСТРОЕК
       theme: ThemeData.light().copyWith(

@@ -1,4 +1,4 @@
-name: workout_app
+name: fitflow
 description: "Приложение для тренировок"
 publish_to: 'none'
 version: 1.0.0+1
