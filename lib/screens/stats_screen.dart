@@ -112,45 +112,7 @@ class _StatsScreenState extends State<StatsScreen>{
   AppBar _buildAppBar(){
     return AppBar(
       title: const Text('Статистика'),
-      actions: [
-        // ВЫБОР ПЕРИОДА
-        PopupMenuButton<int>(
-          onSelected: (days){
-            setState(() => _filterDays = days);
-            _loadData();
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 7, child: Text('За неделю')),
-            const PopupMenuItem(value: 30, child: Text('За месяц')),
-            const PopupMenuItem(value: 90, child: Text('За 3 месяца')),
-            const PopupMenuItem(value: 365, child: Text('За год')),
-            const PopupMenuItem(value: 0, child: Text('За всё время')),
-          ],
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 20),
-                const SizedBox(width: 4),
-                Text(_getPeriodText()),
-              ],
-            ),
-          ),
-        )
-      ],
     );
-  }
-
-  // ТЕКСТ ДЛЯ ВЫБРАННОГО ПЕРИОДА
-  String _getPeriodText(){
-    switch (_filterDays){
-      case 7: return 'Неделя';
-      case 30: return 'Месяц';
-      case 90: return '3 месяца';
-      case 365: return 'Год';
-      case 0: return 'Всё время';
-      default: return '${_filterDays} дн.';
-    }
   }
 
   // ОСНОВНОЕ СОДЕРЖИМОЕ
@@ -220,11 +182,11 @@ class _StatsScreenState extends State<StatsScreen>{
       child: Padding(
           padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'Общая статистика',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
@@ -232,19 +194,13 @@ class _StatsScreenState extends State<StatsScreen>{
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildStatCard(
-                  title: 'Тренировок',
+                  title: 'Всего тренировок',
                   value: totalWorkouts.toString(),
                   icon: Icons.fitness_center,
                   color: Colors.blue,
                 ),
                 _buildStatCard(
-                  title: 'Общий объём',
-                  value: '${totalVolume.toStringAsFixed(0)} кг',
-                  icon: Icons.scale,
-                  color: Colors.green,
-                ),
-                _buildStatCard(
-                  title: 'Ср. время',
+                  title: 'Ср. время трен.',
                   value: '${(avgDuration/60).toStringAsFixed(0)} мин',
                   icon: Icons.timer,
                   color: Colors.orange,
@@ -278,14 +234,14 @@ class _StatsScreenState extends State<StatsScreen>{
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: color,
           ),
         ),
         Text(
           title,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 15, color: Colors.grey),
         ),
       ],
     );
