@@ -80,6 +80,7 @@ class _TimerWidgetState extends State<TimerWidget>{
       await NotificationService().showTimerCompleteNotification(
         title: 'Таймер завершен',
         body: 'Отдых после ${widget.exerciseName} завершен. Возвращайтесь к тренировке!',
+        context: context,
       );
     } catch (e) {
       print('Ошибка показа уведомления: $e');

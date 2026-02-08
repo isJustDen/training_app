@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
-import '../services/notification_service.dart';
+
 
 // ЭКРАН НАСТРОЕК ПРИЛОЖЕНИЯ
 class SettingsScreen extends StatefulWidget{
@@ -76,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
               title: const Text('Уведомления'),
               subtitle: const Text('Уведомления о завершении таймера'),
               trailing: Switch(
-                value: settings.notificationEnabled,
+                value: settings.notificationsEnabled,
                 onChanged: (value) async {
                   await settingsProvider.toggleNotifications();
                 },

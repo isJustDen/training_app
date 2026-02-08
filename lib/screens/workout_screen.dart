@@ -764,6 +764,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 await notificationService.showWorkoutCompleteNotification(
                   title: 'Тренировка завершена!',
                   body: '${widget.template.name}. Продолжительность: ${minutes} минут(ы) ${seconds} секунд(ы)',
+                  context: context,
                 );
 
                 print('Тренировка сохранена в историю!');

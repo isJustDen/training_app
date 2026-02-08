@@ -2,7 +2,10 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:provider/provider.dart';
+import 'package:workout_app/providers/settings_provider.dart';
 
 // СЕРВИС ДЛЯ УПРАВЛЕНИЯ УВЕДОМЛЕНИЯМИ
 class NotificationService {
@@ -92,10 +95,23 @@ class NotificationService {
 
   // ПОКАЗАТЬ УВЕДОМЛЕНИЕ О ЗАВЕРШЕНИИ ТАЙМЕРА
   Future<void> showTimerCompleteNotification({
+    required BuildContext context,
     String title = 'Таймер завершен',
     String body = 'Время отдыха истекло! Продолжайте тренировку.',
   }) async {
     try {
+      // ПОЛУЧАЕМ НАСТРОЙКИ ИЗ PROVIDER
+      final settingsProvider = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+
+      // ПРОВЕРЯЕМ, ВКЛЮЧЕНЫ ЛИ УВЕДОМЛЕНИЯ
+      if (!settingsProvider.settings.notificationsEnabled){
+        print('Уведомления отключены в настройках');
+        return;
+      }
+
       // ДЕТАЛИ ДЛЯ ANDROID
       const AndroidNotificationDetails androidDetails =
       AndroidNotificationDetails(
@@ -141,10 +157,23 @@ class NotificationService {
 
   // ПОКАЗАТЬ УВЕДОМЛЕНИЕ О ЗАВЕРШЕНИИ ТРЕНИРОВКИ
   Future<void> showWorkoutCompleteNotification({
+    required BuildContext context,
     String title = 'Тренировка завершена',
     String body = 'Отличная работа! Тренировка сохранена.',
   }) async {
     try {
+      // ПОЛУЧАЕМ НАСТРОЙКИ ИЗ PROVIDER
+      final settingsProvider = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+
+      // ПРОВЕРЯЕМ, ВКЛЮЧЕНЫ ЛИ УВЕДОМЛЕНИЯ
+      if (!settingsProvider.settings.notificationsEnabled){
+        print('Уведомления отключены в настройках');
+        return;
+      }
+
       const AndroidNotificationDetails androidDetails =
       AndroidNotificationDetails(
         'workout_timer_channel',
