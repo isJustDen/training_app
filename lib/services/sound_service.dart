@@ -40,10 +40,18 @@ class SoundService {
     }
 
     try{
-      print('Пытаюсь воспроизвести звук таймера...');
-      await _player.stop(); //остановка предыдущего звука
+      await _player.stop();
+      //остановка предыдущего звука
+      await _player.setAudioContext(
+          AudioContext(
+          android: AudioContextAndroid(
+            contentType: AndroidContentType.sonification,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          )
+        )
+      );
+      // Воспроизводим звук
       await _player.play(AssetSource('sounds/start_timer.mp3'));
-      print('Звук таймера воспроизведён');
     } catch (e) {
       print('Ошибка вопроизведения $e');
       _playFallBackNotification();
@@ -66,6 +74,15 @@ class SoundService {
     try{
       print('Пытаюсь воспроизвести звук таймера...');
       await _player.stop(); //остановка предыдущего звука
+      await _player.setAudioContext(
+          AudioContext(
+              android: AudioContextAndroid(
+                contentType: AndroidContentType.sonification,
+                audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+              )
+          )
+      );
+      // Воспроизводим звук
       await _player.play(AssetSource('sounds/timer_beep.mp3'));
       print('Звук таймера воспроизведён');
     } catch (e) {
@@ -89,6 +106,15 @@ class SoundService {
     try {
       print('Пытаюсь воспроизвести звук завершенияю...');
       await _player.stop();
+      await _player.setAudioContext(
+          AudioContext(
+              android: AudioContextAndroid(
+                contentType: AndroidContentType.sonification,
+                audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+              )
+          )
+      );
+      // Воспроизводим звук
       await _player.play(AssetSource('sounds/workout_complete.mp3'));
       print('Звук завершения воспроизведён');
     } catch (e) {

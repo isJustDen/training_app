@@ -62,7 +62,7 @@ class _TimerWidgetState extends State<TimerWidget>{
       // ЕСЛИ ВРЕМЯ ВЫШЛО
       if (_remainingTime <= 0) {
         timer.cancel();
-
+        SoundService.playTimerSound(context);
         await _showCompleteNotification();
 
         widget.onComplete();
@@ -82,7 +82,7 @@ class _TimerWidgetState extends State<TimerWidget>{
         body: 'Отдых после ${widget.exerciseName} завершен. Возвращайтесь к тренировке!',
       );
     } catch (e) {
-      print('⚠Ошибка показа уведомления: $e');
+      print('Ошибка показа уведомления: $e');
     }
   }
 
@@ -121,6 +121,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.orange,
+                        fontSize: 25,
                       ),
                   ),
                   Text(
@@ -132,13 +133,6 @@ class _TimerWidgetState extends State<TimerWidget>{
                     ),
                   ),
                   const SizedBox(height: 4,),
-                  Text(
-                    'Уведомление придет по завершению',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.orange.shade700,
-                    ),
-                  ),
                 ],
               ),
           ),
@@ -153,7 +147,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                 //   );
                   widget.onSkip!();
                 },
-                icon: const Icon(Icons.skip_next, color: Colors.orange),
+                icon: const Icon(Icons.stop, color: Colors.deepOrange, size: 40,),
                 tooltip: 'Пропустить отдых',
             ),
         ],
