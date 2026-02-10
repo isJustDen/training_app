@@ -1,8 +1,10 @@
 //screens/settings_screen.dart
 
+import 'package:fitflow/screens/templates_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/storage_service.dart';
 
 
 // ЭКРАН НАСТРОЕК ПРИЛОЖЕНИЯ
@@ -85,33 +87,6 @@ class _SettingsScreenState extends State<SettingsScreen>{
           ),
           const SizedBox(height: 8),
 
-          // // РАЗДЕЛ: ТРЕНИРОВКА
-          // _buildSectionHeader('Тренировка'),
-          // Card(
-          //   child: Column(
-          //     children: [
-          //       ListTile(
-          //         leading: const Icon(Icons.timer),
-          //         title: const Text('Время отдыха по умолчанию'),
-          //         subtitle: Text('${settings.defaultRestTime} секунд'),
-          //       ),
-          //       Padding(
-          //         padding: const EdgeInsets.symmetric(horizontal: 16),
-          //         child: Slider(
-          //           value: settings.defaultRestTime.toDouble(),
-          //           min: 30,
-          //           max: 180,
-          //           divisions: 10,
-          //           label: '${settings.defaultRestTime} сек',
-          //           onChanged: (value) async {
-          //             await settingsProvider.setDefaultRestTime(value.toInt());
-          //           },
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
-
           // РАЗДЕЛ: ДАННЫЕ
           _buildSectionHeader('Данные'),
           Card(
@@ -158,16 +133,11 @@ class _SettingsScreenState extends State<SettingsScreen>{
                 child: const Text('Отмена'),
             ),
             ElevatedButton(
-                onPressed: () async {
-                  // ЗДЕСЬ БУДЕТ ЛОГИКА ОЧИСТКИ ДАННЫХ
-                  // Пока просто закрываем диалог
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Функция очистки в разработке'),
-                    ),
-                  );
-                },
+              onPressed: () async{
+                // ОЧИЩАЕМ ХРАНИЛИЩЕ
+                await StorageService.clearAllData();
+                Navigator.pop(context);
+              },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                 ),
