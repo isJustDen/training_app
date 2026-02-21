@@ -90,7 +90,7 @@ class Exercise {
 
   // НОВЫЙ МЕТОД: ПОЛУЧИТЬ ИНФОРМАЦИЮ О КРУГЕ В ВИДЕ СТРОКИ
   String get circleInfo {
-    if (isInAnyCircle) return 'Не в круге';
+    if (!isInAnyCircle) return 'Не в круге';
     return 'Круг $circleNumber ($circleOrder)';
   }
 
