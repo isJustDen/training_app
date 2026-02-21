@@ -145,7 +145,7 @@ class ExerciseEditor extends StatelessWidget{
     // ПАРСИМ ЧИСЛА
     final weight = double.tryParse(weightController.text) ?? 0.0;
     final sets = int.tryParse(setsController.text) ?? 3;
-    final reps = int.tryParse(restController.text) ?? 8;
+    final reps = int.tryParse(repsController.text) ?? 8;
     final restMinutes = int.tryParse(restController.text) ?? 1;
 
     // ПРОВЕРКА НА ПОЛОЖИТЕЛЬНЫЕ ЗНАЧЕНИЯ
