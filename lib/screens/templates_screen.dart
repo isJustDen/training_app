@@ -93,13 +93,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
               icon: const Icon(Icons.refresh),
               tooltip: 'Обновить',
           ),
-
-          // КНОПКА ОЧИСТКИ (для тестирования)
-          IconButton(
-              onPressed: _clearData,
-              icon: const Icon(Icons.delete_forever),
-              tooltip: 'Очистить все данные',
-          ),
         ],
       ),
       body: _buildContent(),
