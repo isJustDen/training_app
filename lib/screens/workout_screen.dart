@@ -242,46 +242,14 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                                 ),
                               ],
                             ),
+
+                          // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
+                          if (lastResult != null)
+                            _buildHistoryIndicator(exercise, lastResult),
+
+
                         ],
                       ),
-                    ),
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: isCurrent ? Colors.blue: Colors.grey.shade200,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${index+1}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isCurrent ? Colors.white: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // НАЗВАНИЕ УПРАЖНЕНИЯ
-                    Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                            exercise.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                            ),
-                          ),
-
-                            // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
-                            if (lastResult != null)
-                              _buildHistoryIndicator(exercise, lastResult),
-                          ],
-                        ),
                     ),
                   ],
                 ),
