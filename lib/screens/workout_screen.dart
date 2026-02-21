@@ -1,5 +1,8 @@
 //screens/workout_screen.dart
 
+import 'package:fitflow/models/workout_circle.dart';
+import 'package:fitflow/utils/circle_utils.dart';
+
 import '../models/set_result.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
@@ -44,6 +47,12 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ВРЕМЯ НАЧАЛА ТРЕНИРОВКИ
   late DateTime _workoutStartTime;
+  List<WorkoutCircle> _workoutCircles = []; // Список кругов
+  int _currentCircleIndex = 0; // Текущий круг
+  int _currentExerciseInCircleIndex = 0; // Текущее упражнение в круге
+  bool _isInCircleMode = false; // Режим выполнения круга
+  int _circleRestTimeRemaining = 0; // Таймер отдыха после круга
+  bool _isCircleResting = false; // Флаг отдыха после круга
 
   // initState() - ВЫЗЫВАЕТСЯ ПРИ СОЗДАНИИ ВИДЖЕТА
   @override
@@ -66,9 +75,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       );
     }).toList();
 
+    // СОЗДАЕМ КРУГИ ИЗ УПРАЖНЕНИЙ
+    _createWorkoutCircles();
+
     // ЗАГРУЖАЕМ ИСТОРИЧЕСКИЕ ДАННЫЕ ДЛЯ КАЖДОГО УПРАЖНЕНИЯ
     await _loadExerciseHistory();
-
     print('Тренировка начата: ${widget.template.name}');
   }
 
@@ -105,27 +116,30 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   // ВЕРХНЯЯ ПАНЕЛЬ (AppBar)
-  AppBar _buildAppBar(){
+  AppBar _buildAppBar() {
+    final circleInfo = _isInCircleMode && _workoutCircles.isNotEmpty
+        ? ' | Круг ${_currentCircleIndex + 1}/${_workoutCircles.length}'
+        : '';
+
     return AppBar(
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.template.name,
+            '${widget.template.name}$circleInfo',
             style: const TextStyle(fontSize: 18),
           ),
           Text(
-            '${_currentExerciseIndex + 1}/${_exercisesProgress.length} упражнений',
+            '${_currentCircleIndex +1}/${_exercisesProgress.length} упражнений',
             style: const TextStyle(fontSize: 12),
           ),
         ],
       ),
       actions: [
-        // КНОПКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
         IconButton(
-            onPressed: _finishWorkout,
-            icon: const Icon(Icons.done_all),
-            tooltip: 'Завершить тренировку',
+          onPressed: _finishWorkout,
+          icon: const Icon(Icons.done_all),
+          tooltip: 'Завершить тренировку',
         ),
       ],
     );
@@ -167,12 +181,25 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         final lastResult = _lastExerciseResults[exerciseName];
         final averageStats = _averageStats[exerciseName];
 
+        // ОПРЕДЕЛЯЕМ, ПРИНАДЛЕЖИТ ЛИ УПРАЖНЕНИЕ КРУГУ
+        final isInCircle = exercise.isInAnyCircle;
+        final circleNumber = exercise.circleNumber;
+        final circleColor = isInCircle
+          ? CircleUtils.getCircleColor(circleNumber)
+            : null;
+
+        // ОПРЕДЕЛЯЕМ, ЯВЛЯЕТСЯ ЛИ ЭТО ТЕКУЩИМ КРУГОМ
+
+        final isCurrentCircle = _isInCircleMode &&
+        _currentCircleIndex <_workoutCircles.length &&
+        _workoutCircles[_currentCircleIndex].number == circleNumber;
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: isCurrent ? Colors.blue.withOpacity(0.1): Colors.white,
+            color: _getExerciseBackgroundColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
             border: Border.all(
-              color: isCurrent ? Colors.blue: Colors.grey.shade300,
+              color: _getExerciseBackgroundColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
               width: isCurrent ? 2:1,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -184,6 +211,40 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 // ЗАГОЛОВОК СТРОКИ - НОМЕР И НАЗВАНИЕ
                 Row(
                   children: [
+                    _buildExerciseNumberIndicator(index, exercise, isCurrent, circleColor),
+                    const SizedBox(width: 12,),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exercise.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                          if (isInCircle)
+                            Row(
+                              children: [
+                                Icon(
+                                  CircleUtils.getCircleIcon(circleNumber),
+                                  size: 12,
+                                  color: circleColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                    'Круг $circleNumber (${exercise.circleOrder})',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: circleColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
                     Container(
                       width: 30,
                       height: 30,
@@ -323,6 +384,89 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           ),
         );
       },
+    );
+  }
+
+  // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ДЛЯ ОПРЕДЕЛЕНИЯ ЦВЕТОВ:
+  Color _getExerciseBackgroundColor(
+      bool isCurrent,
+      bool isInCircle,
+      bool isCurrentCircle,
+      Color? circleColor,
+      ){
+    if (isCurrent){
+      return Colors.blue.withOpacity(0.1);
+    } else if (isInCircle && isCurrentCircle) {
+      return circleColor!.withOpacity(0.05);
+    }
+    return Colors.white;
+  }
+
+  Color _getExerciseBorderColor(
+      bool isCurrent,
+      bool isInCircle,
+      bool isCurrentCircle,
+      Color? circleColor,
+      ){
+    if (isCurrent){
+      return Colors.blue;
+    } else if (isInCircle && isCurrentCircle){
+      return circleColor!.withOpacity(0.3);
+    }else if (isInCircle){
+      return circleColor!.withOpacity(0.2);
+    }
+    return Colors.grey.shade300;
+  }
+
+  // ВИДЖЕТ ДЛЯ НОМЕРА УПРАЖНЕНИЯ:
+  Widget _buildExerciseNumberIndicator(
+      int index,
+      Exercise exercise,
+      bool isCurrent,
+      Color? circleColor,
+      ){
+    if (exercise.isInAnyCircle){
+      return Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: isCurrent
+              ? Colors.blue
+              : circleColor!.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isCurrent ? Colors.blue : circleColor!,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            exercise.circleOrder.toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isCurrent ? Colors.white : circleColor,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        color: isCurrent? Colors.blue: Colors.grey.shade200,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          '${index + 1}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isCurrent ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
     );
   }
 
@@ -494,6 +638,69 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  //МЕТОД ДЛЯ ПОКАЗА ИСТОРИЧЕСКИХ ДАННЫХ
+  Widget _buildHistoryIndicator(Exercise current, Exercise lastResult){
+    final weightDiff = current.weight - lastResult.weight;
+    final repsDiff = current.reps - lastResult.reps;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        // ИНФОРМАЦИЯ О ПРОШЛОЙ ТРЕНИРОВКЕ
+        Row(
+          children: [
+            const Icon(Icons.history, size: 12, color: Colors.grey),
+            const SizedBox(width: 4),
+            Text(
+              'Прошлый раз: ${lastResult.weight} кг × ${lastResult.reps} ',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            )
+          ],
+        ),
+        // ИНДИКАТОР ИЗМЕНЕНИЙ
+        if (weightDiff != 0 || repsDiff != 0)
+          Row(
+            children: [
+              // ИЗМЕНЕНИЕ ВЕСА
+              if (weightDiff > 0)
+                _buildChangeIndicator('+${weightDiff.toStringAsFixed(1)}кг', Colors.green)
+              else if (weightDiff < 0)
+                _buildChangeIndicator('${weightDiff.toStringAsFixed(1)}кг', Colors.red),
+
+              const SizedBox(width: 8),
+
+              // ИЗМЕНЕНИЕ ПОВТОРЕНИЙ
+              if (repsDiff > 0)
+                _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
+              else if (repsDiff < 0)
+                _buildChangeIndicator('${repsDiff} повт', Colors.red),
+            ],
+          ),
+      ],
+    );
+  }
+
+  // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ИНДИКАТОРА ИЗМЕНЕНИЙ
+  Widget _buildChangeIndicator(String text, Color color){
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
@@ -826,66 +1033,62 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     );
   }
 
-  //МЕТОД ДЛЯ ПОКАЗА ИСТОРИЧЕСКИХ ДАННЫХ
-  Widget _buildHistoryIndicator(Exercise current, Exercise lastResult){
-    final weightDiff = current.weight - lastResult.weight;
-    final repsDiff = current.reps - lastResult.reps;
+  // МЕТОД ДЛЯ СОЗДАНИЯ КРУГОВ ИЗ УПРАЖНЕНИЙ:
+  void _createWorkoutCircles(){
+    final circles = <WorkoutCircle>[];
+    final groupedExercises = <int, List<ExerciseProgress>>{};
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 4),
-        // ИНФОРМАЦИЯ О ПРОШЛОЙ ТРЕНИРОВКЕ
-        Row(
-          children: [
-            const Icon(Icons.history, size: 12, color: Colors.grey),
-            const SizedBox(width: 4),
-            Text(
-              'Прошлый раз: ${lastResult.weight} кг × ${lastResult.reps} ',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-            )
-          ],
-        ),
-        // ИНДИКАТОР ИЗМЕНЕНИЙ
-        if (weightDiff != 0 || repsDiff != 0)
-          Row(
-            children: [
-              // ИЗМЕНЕНИЕ ВЕСА
-              if (weightDiff > 0)
-                _buildChangeIndicator('+${weightDiff.toStringAsFixed(1)}кг', Colors.green)
-              else if (weightDiff < 0)
-                _buildChangeIndicator('${weightDiff.toStringAsFixed(1)}кг', Colors.red),
+    // ГРУППИРУЕМ УПРАЖНЕНИЯ ПО КРУГАМ
+    for (var progress in _exercisesProgress){
+      if (progress.exercise.isInAnyCircle) {
+        final circleNumber = progress.exercise.circleNumber;
+        if (!groupedExercises.containsKey(circleNumber)) {
+          groupedExercises[circleNumber] = [];
+        }
+        groupedExercises[circleNumber]!.add(progress);
+      }
+    }
 
-              const SizedBox(width: 8),
+    // СОРТИРУЕМ УПРАЖНЕНИЯ ВНУТРИ КРУГОВ ПО ПОРЯДКУ
+    for(var circleNumber in groupedExercises.keys){
+      groupedExercises[circleNumber]!.sort((a,b) {
+        return a.exercise.circleOrder.compareTo(b.exercise.circleOrder);
+      });
+    }
+    // СОЗДАЕМ ОБЪЕКТЫ КРУГОВ
+    for (var circleNumber in groupedExercises.keys){
+      final exercisesInCircle = groupedExercises[circleNumber]!;
 
-              // ИЗМЕНЕНИЕ ПОВТОРЕНИЙ
-              if (repsDiff > 0)
-                _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
-              else if (repsDiff < 0)
-                _buildChangeIndicator('${repsDiff} повт', Colors.red),
-            ],
-          ),
-      ],
-    );
-  }
+      // ПРЕОБРАЗУЕМ ExerciseProgress В Exercise ДЛЯ КРУГА
+      final circleExercises = exercisesInCircle
+        .map((progress) => progress.exercise)
+        .toList();
 
-  // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ИНДИКАТОРА ИЗМЕНЕНИЙ
-  Widget _buildChangeIndicator(String text, Color color){
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 10,
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
+      circles.add(WorkoutCircle(
+          number: circleNumber,
+          exercises: circleExercises,
+        restTime: 90,
+      ));
+    }
+
+    // СОРТИРУЕМ КРУГИ ПО НОМЕРУ
+    circles.sort((a, b) => a.number.compareTo(b.number));
+
+    setState(() {
+      _workoutCircles = circles;
+
+      // ЕСЛИ ЕСТЬ КРУГИ, НАЧИНАЕМ С ПЕРВОГО
+      if (_workoutCircles.isNotEmpty) {
+        _isInCircleMode = true;
+        _currentCircleIndex = 0;
+        _currentExerciseInCircleIndex = 0;
+
+        // УСТАНАВЛИВАЕМ ТЕКУЩЕЕ УПРАЖНЕНИЕ КАК ПЕРВОЕ В КРУГЕ
+        final firstExerciseInCircle = _workoutCircles[0].exercises[0];
+        _currentExerciseIndex = _exercisesProgress.indexWhere(
+            (progress) => progress.exercise.id == firstExerciseInCircle.id,
+        );
+      }
+    });
   }
 }

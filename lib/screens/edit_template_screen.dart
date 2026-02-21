@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../models/exercise.dart';
 import '../widgets/exercise_editor.dart';
+import '../utils/circle_utils.dart';
 
 // Экран для редактирования шаблона тренировки
 class EditTemplateScreen extends StatefulWidget{
@@ -25,6 +26,9 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
 // Контроллеры для полей ввода
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dayController = TextEditingController();
+
+  List<int> _selectedExerciseIndices = []; // Для multi-select
+  bool _isSelectionMode = false; // Режим выбора упражнений для круга
 
   @override
 
@@ -137,16 +141,47 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
   }
 
   // СПИСОК УПРАЖНЕНИЙ
+  // МЕТОД ОБНОВЛЁН ДЛЯ ПОДДЕРЖКИ КРУГОВ
   Widget _buildExercisesList() {
+    final exercises = _template.exercises;
+    final circles = CircleUtils.groupExercisesByCircle(exercises);
+    final circleNumbers = CircleUtils.getAllCircleNumbers(exercises);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ЗАГОЛОВОК С КНОПКАМИ УПРАВЛЕНИЯ
         Row(
           children: [
             const Text(
               'Упражнения:',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+            const Spacer(),
+
+            // КНОПКА СОЗДАНИЯ КРУГА
+            if(!_isSelectionMode && exercises.length >=2)
+              ElevatedButton.icon(
+                onPressed: _toggleSelectionMode,
+                label: const Text('Создать круг'),
+                icon: const Icon(Icons.group_add),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor:  Colors.blue,
+                    foregroundColor: Colors.white,
+                ),
+              ),
+
+            // КНОПКА ПОДТВЕРЖДЕНИЯ ВЫБОРА
+            if (_isSelectionMode && _selectedExerciseIndices.isNotEmpty)
+              ElevatedButton.icon(
+                onPressed: _createCircleFromSelected,
+                icon: const Icon(Icons.done),
+                label: Text('Создать (${_selectedExerciseIndices.length})'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
             const SizedBox(width: 8),
             Chip(
               label: Text('${_template.exercises.length}'),
@@ -156,17 +191,34 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         ),
         const SizedBox(height: 8),
 
-        // ЕСЛИ УПРАЖНЕНИЙ НЕТ
-        if (_template.exercises.isEmpty)
+        // СПИСОК КРУГОВ (если есть)
+        if (circleNumbers.isNotEmpty) ... [
+          ...circleNumbers.map((circleNumber){
+            final circleExercises = circles[circleNumber]!;
+            final color = CircleUtils.getCircleColor(circleNumber);
+
+            return _buildCircleCard(circleNumber, circleExercises, color);
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // ОТДЕЛЬНЫЕ УПРАЖНЕНИЯ (не в кругах)
+        const Text('Отдельные упражнения',
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey
+        )),
+        const SizedBox(height: 8),
+
+      if(exercises.where((e) => !e.isInAnyCircle).isEmpty)
           _buildEmptyExercises(),
 
-        // ЕСЛИ УПРАЖНЕНИЯ ЕСТЬ
-        if (_template.exercises.isNotEmpty)
-          ..._template.exercises.asMap().entries.map((entry){
-          final index = entry.key;
-          final exercise = entry.value;
-          return _buildExerciseCard(exercise, index);
-          }),
+        // УПРАЖНЕНИЯ НЕ В КРУГАХ
+        ...exercises.asMap().entries.where((entry) {
+          return !entry.value.isInAnyCircle;
+        }).map((entry){
+        final index = entry.key;
+        final exercise = entry.value;
+        return _buildExerciseCard(exercise, index,true);
+        }),
       ],
     );
   }
@@ -198,128 +250,146 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     );
   }
 
-  // КАРТОЧКА УПРАЖНЕНИЯ
-  Widget _buildExerciseCard(Exercise exercise, int index){
+  // КАРТОЧКА УПРАЖНЕНИЯ С ПОДДЕРЖКОЙ ВЫБОРА
+  Widget _buildExerciseCard(Exercise exercise, int index, bool isInCircle){
+    final isSelected = _selectedExerciseIndices.contains(index);
+    final circleColor = exercise.isInAnyCircle
+      ? CircleUtils.getCircleColor(exercise.circleNumber)
+        : null;
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 8.0),
-      child:Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
+      margin: EdgeInsets.only(
+        bottom: 8.0,
+        left: isInCircle ? 16.0 : 0,
+      ),
+      color: isSelected
+        ? Colors.blue.withOpacity(0.1)
+          : (circleColor?.withOpacity(0.05) ?? Colors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: isSelected
+              ? Colors.blue
+              : (circleColor?.withOpacity(0.3) ?? Colors.green.shade300),
+          width: isSelected ? 2:1,
+        ),
+      ),
+      child: ListTile(
+        leading: _buildExerciseLeading(exercise, index, isSelected),
+        title: Text(
+          exercise.name,
+          style: TextStyle(
+            fontWeight: exercise.isInAnyCircle ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                // НОМЕР УПРАЖНЕНИЯ
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurpleAccent,
-                      ),
-                    ),
-                  ),
+            Text('${exercise.sets}х${exercise.reps} по ${exercise.weight}кг'),
+            if(exercise.isInAnyCircle)
+              Text(
+                'Круг ${exercise.circleNumber} (${exercise.circleOrder})',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: circleColor,
                 ),
-                const SizedBox(width: 12),
+              ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if(_isSelectionMode)
+              Checkbox(
+                value: isSelected,
+                onChanged: (_) => _toggleExerciseSelection(index)
+              ),
 
-                // НАЗВАНИЕ
-                Expanded(
-                    child: Text(
-                      exercise.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                ),
-
-                // КНОПКИ ДЕЙСТВИЙ
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // КНОПКА РЕДАКТИРОВАНИЯ
-                    IconButton(
-                      onPressed: () => _editExercise(index),
-                      icon: const Icon(Icons.edit, size: 20,),
-                      tooltip: 'Редактировать',
-                    ),
-
-                    // КНОПКА УДАЛЕНИЯ
-                    IconButton(
-                        onPressed: () => _removeExercise(index),
-                        icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                        tooltip: 'Удалить',
-                    ),
-                  ],
-                ),
-              ],
+            // КНОПКА РЕДАКТИРОВАНИЯ
+            IconButton(
+              onPressed: () => _editExercise(index),
+              icon: const Icon(Icons.edit, size: 20,),
+              tooltip: 'Редактировать',
             ),
 
-            const SizedBox(height: 8),
-
-            // ИНФОРМАЦИЯ ОБ УПРАЖНЕНИИ
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ПАРАМЕТРЫ
-                  Row(
-                    children: [
-                      _buildParamChip('${exercise.weight}  kg', Icons.fitness_center),
-                      const SizedBox(width: 5),
-                      _buildParamChip('${exercise.sets}  set', Icons.repeat),
-                      const SizedBox(width: 5),
-                      _buildParamChip('${exercise.reps} rep', Icons.repeat_one),
-                      const SizedBox(width: 5),
-                      _buildParamChip('${exercise.restTime ~/ 60} m', Icons.timer),
-                      const SizedBox(width: 5),
-                    ],
-
-                  ),
-
-                  // РАСЧЕТ ОБЪЕМА (добавим позже)
-                  if (exercise.weight > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        'Объём ${exercise.weight * exercise.sets * exercise.reps} единиц',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+            // КНОПКА УДАЛЕНИЯ
+            IconButton(
+                onPressed: () => _removeExercise(index),
+                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                tooltip: 'Удалить',
             ),
           ],
         ),
+        onTap: _isSelectionMode
+          ? () => _toggleExerciseSelection(index)
+          : null,
       ),
     );
   }
 
-  // ЧИП С ПАРАМЕТРОМ
-  Widget _buildParamChip(String text, IconData icon){
-    return Chip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, fontWeight: FontWeight.bold,),
-          const SizedBox(width: 4),
-          Text(text),
-        ],
+  // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ LEADING В ЛИСТАЙЛЕ
+  Widget _buildExerciseLeading(Exercise exercise, int index, bool isSelected){
+    if (_isSelectionMode) {
+      return Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.grey.shade200,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey.shade400,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            (index + 1).toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Colors.black,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ЕСЛИ УПРАЖНЕНИЕ В КРУГЕ - ПОКАЗЫВАЕМ ИКОНКУ КРУГА
+    if (exercise.isInAnyCircle){
+      final color = CircleUtils.getCircleColor(exercise.circleNumber);
+      return Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: color, width: 2,),
+        ),
+        child: Center(
+          child: Text(
+            exercise.circleOrder.toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ОБЫЧНОЕ УПРАЖНЕНИЕ
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        shape: BoxShape.circle,
       ),
-      // backgroundColor: Colors.grey.shade600,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-      visualDensity: VisualDensity.compact,
+      child: Center(
+        child: Text(
+          (index + 1).toString(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 
@@ -357,6 +427,82 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
             },
           );
         },
+    );
+  }
+
+  // НОВЫЙ МЕТОД ДЛЯ СОЗДАНИЯ КАРТОЧКИ КРУГА
+  Widget _buildCircleCard(int circleNumber, List<Exercise> exercises, Color color){
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: color.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: color.withOpacity(0.3), width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ЗАГОЛОВОК КРУГА С КНОПКОЙ УДАЛЕНИЯ
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration:  BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        CircleUtils.getCircleIcon(circleNumber),
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text('Круг $circleNumber',
+                        style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${exercises.length} ${CircleUtils.getExerciseWord(exercises.length)}',
+                  style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                    onPressed:() => _removeCircle(circleNumber),
+                    icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                    tooltip: 'Удалить круг',
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // УПРАЖНЕНИЯ В КРУГЕ
+            ...exercises.asMap().entries.map((entry) {
+              final index = entry.key;
+              final exercise = entry.value;
+
+              // НАХОДИМ ОРИГИНАЛЬНЫЙ ИНДЕКС УПРАЖНЕНИЯ В ОБЩЕМ СПИСКЕ
+              final originalIndex = _template.exercises.indexWhere(
+                  (e) => e.id == exercise.id
+              );
+
+              return _buildExerciseCard(exercise, originalIndex, true);
+            }),
+          ],
+        ),
+      ),
     );
   }
 
@@ -429,5 +575,97 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     _nameController.dispose();
     _dayController.dispose();
     super.dispose();
+  }
+
+  // ВКЛЮЧИТЬ/ВЫКЛЮЧИТЬ РЕЖИМ ВЫБОРА УПРАЖНЕНИЙ
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      if (!_isSelectionMode) {
+        _selectedExerciseIndices.clear();
+      }
+    });
+  }
+
+  // ВЫБРАТЬ/СНЯТЬ ВЫБОР С УПРАЖНЕНИЯ
+  void _toggleExerciseSelection(int index){
+    setState(() {
+      if (_selectedExerciseIndices.contains(index)){
+        _selectedExerciseIndices.remove(index);
+      } else {
+        _selectedExerciseIndices.add(index);
+      }
+    });
+  }
+
+  // СОЗДАТЬ НОВЫЙ КРУГ ИЗ ВЫБРАННЫХ УПРАЖНЕНИЙ
+  void _createCircleFromSelected() {
+    if (_selectedExerciseIndices.length < 2){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Выберите минимум 2 упражнения для создания круга'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // СОРТИРУЕМ ИНДЕКСЫ ПО ВОЗРАСТАНИЮ
+    _selectedExerciseIndices.sort();
+
+    // СОЗДАЕМ НОВЫЙ КРУГ
+    setState(() {
+      _template = _template.copyWith(
+        exercises: CircleUtils.createNewCircle(
+          _template.exercises,
+          _selectedExerciseIndices,
+        ),
+      );
+
+      // СБРАСЫВАЕМ РЕЖИМ ВЫБОРА
+      _isSelectionMode = false;
+      _selectedExerciseIndices.clear();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Создан круг с ${_selectedExerciseIndices.length} упражнений'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  // УДАЛИТЬ КРУГ
+  void _removeCircle(int circleNumber) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить круг?'),
+        content: Text('Вы уверены, что хотите удалить круг? $circleNumber?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _template = _template.copyWith(
+                    exercises: CircleUtils.removeCircle(
+                        _template.exercises,
+                        circleNumber,
+                    ),
+                  );
+                });
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
   }
 }
