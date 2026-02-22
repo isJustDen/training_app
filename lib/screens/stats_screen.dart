@@ -343,7 +343,7 @@ class _StatsScreenState extends State<StatsScreen>{
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: stats.efficiency/100,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
               valueColor: AlwaysStoppedAnimation<Color>(
                 _getEfficiencyColor(stats.efficiency),
               ),
@@ -352,7 +352,7 @@ class _StatsScreenState extends State<StatsScreen>{
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('0%', style: TextStyle(fontSize: 10)),
+                Text('0%', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 Text(
                   'Эффективность: ${stats.efficiency}%',
                   style: TextStyle(
@@ -361,7 +361,7 @@ class _StatsScreenState extends State<StatsScreen>{
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Text('200%', style: TextStyle(fontSize: 10)),
+                Text('200%', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           ],
@@ -407,13 +407,13 @@ class _StatsScreenState extends State<StatsScreen>{
     if (efficiency >= 120) return Colors.green;
     if (efficiency >= 90) return Colors.blue;
     if (efficiency >= 70) return Colors.orange;
-    return Colors.red;
+    return Theme.of(context).colorScheme.error;
   }
 
   // ЦВЕТ ДЛЯ ПРОГРЕССА
   Color _getProgressColor(double progress){
     if (progress > 0) return Colors.green;
-    if (progress < 0) return Colors.red;
+    if (progress < 0) return Theme.of(context).colorScheme.error;
     return Colors.grey;
   }
 

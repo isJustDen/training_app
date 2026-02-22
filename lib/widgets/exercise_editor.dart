@@ -126,9 +126,6 @@ class ExerciseEditor extends StatelessWidget{
         ElevatedButton(
             onPressed: () => _handleSave(context),
             child: const Text('Сохранить'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent
-            ),
         ),
       ],
     );
@@ -183,7 +180,7 @@ class ExerciseEditor extends StatelessWidget{
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
   }

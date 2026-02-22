@@ -96,7 +96,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         ),
         Text(
           'ID ${_template.id}',
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -153,9 +153,9 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         // ЗАГОЛОВОК С КНОПКАМИ УПРАВЛЕНИЯ
         Row(
           children: [
-            const Text(
+            Text(
               'Упражнения:',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
             ),
             const Spacer(),
 
@@ -178,14 +178,21 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                 icon: const Icon(Icons.done),
                 label: Text('Создать (${_selectedExerciseIndices.length})'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             const SizedBox(width: 8),
             Chip(
-              label: Text('${_template.exercises.length}'),
-              backgroundColor: Colors.green.shade200,
+              label: Text('${_template.exercises.length}',),
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              labelStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+              side: BorderSide(
+                color: Colors.green.shade900
+              ),
             ),
           ],
         ),
@@ -203,8 +210,8 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         ],
 
         // ОТДЕЛЬНЫЕ УПРАЖНЕНИЯ (не в кругах)
-        const Text('Отдельные упражнения',
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey
+        Text('Отдельные упражнения',
+        style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary,
         )),
         const SizedBox(height: 8),
 
@@ -228,22 +235,22 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     return Container(
       padding: const EdgeInsets.all(48),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.deepPurple.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
-          const Icon(Icons.directions_run, size: 48, color: Colors.grey,),
+          Icon(Icons.directions_run, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Нет упражнений',
-            style: TextStyle(fontSize: 20, color: Colors.grey),
+            style: TextStyle(fontSize: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Нажмите + чтобы добваить упражнение',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize:20, color: Colors.grey),
+            style: TextStyle(fontSize:20, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -264,13 +271,13 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       ),
       color: isSelected
         ? Colors.blue.withOpacity(0.1)
-          : (circleColor?.withOpacity(0.05) ?? Colors.white),
+          : (circleColor?.withOpacity(0.05) ?? Theme.of(context).colorScheme.outline),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
           color: isSelected
               ? Colors.blue
-              : (circleColor?.withOpacity(0.3) ?? Colors.green.shade300),
+              : (circleColor?.withOpacity(0.3) ?? Colors.green.shade900),
           width: isSelected ? 2:1,
         ),
       ),
@@ -315,7 +322,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
             // КНОПКА УДАЛЕНИЯ
             IconButton(
                 onPressed: () => _removeExercise(index),
-                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                icon: Icon(Icons.delete, size: 20, color: Theme.of(context).colorScheme.error),
                 tooltip: 'Удалить',
             ),
           ],
@@ -334,10 +341,10 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         width: 30,
         height: 30,
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.grey.shade200,
+          color: isSelected ? Colors.blue : Theme.of(context).colorScheme.surfaceVariant,
           shape: BoxShape.circle,
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.shade400,
+            color: isSelected ? Colors.blue : Theme.of(context).colorScheme.outline,
             width: 2,
           ),
         ),
@@ -346,7 +353,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
             (index + 1).toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.black,
+              color: isSelected ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -381,13 +388,16 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       width: 30,
       height: 30,
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Theme.of(context).colorScheme.surfaceVariant,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Text(
           (index + 1).toString(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
       ),
     );
@@ -458,11 +468,11 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                       Icon(
                         CircleUtils.getCircleIcon(circleNumber),
                         size: 16,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                       const SizedBox(width: 6),
                       Text('Круг $circleNumber',
-                        style: const TextStyle(
+                        style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         ),
@@ -481,7 +491,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                 const SizedBox(width: 12),
                 IconButton(
                     onPressed:() => _removeCircle(circleNumber),
-                    icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                    icon: Icon(Icons.delete, size: 18, color: Theme.of(context).colorScheme.error),
                     tooltip: 'Удалить круг',
                 ),
               ],
@@ -526,7 +536,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Theme.of(context).colorScheme.error,
                 ),
                 child: const Text('Удалить'),
             ),
@@ -564,7 +574,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text (message),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
   }
@@ -630,7 +640,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Создан круг с ${_selectedExerciseIndices.length} упражнений'),
-        backgroundColor: Colors.green,
+        backgroundColor: Color(0xFF81C784),
       ),
     );
   }
@@ -641,7 +651,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Удалить круг?'),
-        content: Text('Вы уверены, что хотите удалить круг? $circleNumber?'),
+        content: Text('Вы уверены, что хотите удалить круг №$circleNumber?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -660,7 +670,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Theme.of(context).colorScheme.error,
               ),
               child: const Text('Удалить'),
           ),

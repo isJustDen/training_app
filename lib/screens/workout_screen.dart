@@ -268,6 +268,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       value: '${progress.currentWeight.toStringAsFixed(1)} кг',
                       icon: Icons.fitness_center,
                       onEdit: () => _showWeightEditor(index),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
 
                     // ПОДХОДЫ
@@ -275,7 +276,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       title: 'Подходы',
                       value: '${progress.completedSetsCount}/${exercise.sets}',
                       icon: Icons.repeat,
-                      color: progress.isCompleted ? Colors.green: null,
+                      color: progress.isCompleted ? Colors.green: Theme.of(context).colorScheme.onSurface,
                     ),
 
                     // ПОВТОРЕНИЯ
@@ -285,6 +286,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       icon: Icons.repeat_one,
                       onIncrement: () => _incrementReps(index),
                       onDecrement: () => _decrementReps(index),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ],
                 ),
@@ -302,7 +304,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                         children: [
                           LinearProgressIndicator(
                             value: progress.progressPercentage / 100,
-                            backgroundColor: Colors.grey.shade200,
+                            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               progress.isCompleted ? Colors.green : Colors.blue,
                             ),
@@ -310,7 +312,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                           const SizedBox(height: 4),
                           Text(
                             '${progress.progressPercentage.toStringAsFixed(0)}%',
-                            style: const TextStyle(fontSize: 12, color:Colors.grey),
+                            style: const TextStyle(fontSize: 12, color:Colors.white),
                           ),
                         ],
                       ),
@@ -367,7 +369,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     } else if (isInCircle && isCurrentCircle) {
       return circleColor!.withOpacity(0.05);
     }
-    return Colors.white;
+    return Theme.of(context).colorScheme.surface;
   }
 
   Color _getExerciseBorderColor(
@@ -383,7 +385,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     }else if (isInCircle){
       return circleColor!.withOpacity(0.2);
     }
-    return Colors.grey.shade300;
+    return Theme.of(context).colorScheme.outline;
   }
 
   // ВИДЖЕТ ДЛЯ НОМЕРА УПРАЖНЕНИЯ:
@@ -423,7 +425,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       width: 30,
       height: 30,
       decoration: BoxDecoration(
-        color: isCurrent? Colors.blue: Colors.grey.shade200,
+        color: isCurrent? Colors.blue: Theme.of(context).colorScheme.surfaceVariant,
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -431,7 +433,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           '${index + 1}',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isCurrent ? Colors.white : Colors.black,
+            color: isCurrent ? Colors.white : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -454,9 +456,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: Theme.of(context).colorScheme.surfaceVariant,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
             ),
             child: Column(
               children: [
@@ -468,7 +470,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: color ?? Colors.grey.shade700,
                         fontWeight: FontWeight.bold
                       ),
@@ -493,7 +495,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                         child: Icon(
                           Icons.remove,
                           size: 20,
-                          color: Colors.red,
+                          color: Theme.of(context).colorScheme.error,
                           ),
                         ),
                       ),
@@ -508,7 +510,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: color ?? Colors.black,
+                            color: color ?? Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -539,7 +541,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: color ?? Colors.black,
+                    color: color ?? Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -639,7 +641,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               if (weightDiff > 0)
                 _buildChangeIndicator('+${weightDiff.toStringAsFixed(1)}кг', Colors.green)
               else if (weightDiff < 0)
-                _buildChangeIndicator('${weightDiff.toStringAsFixed(1)}кг', Colors.red),
+                _buildChangeIndicator('${weightDiff.toStringAsFixed(1)}кг', Theme.of(context).colorScheme.error),
 
               const SizedBox(width: 8),
 
@@ -647,7 +649,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               if (repsDiff > 0)
                 _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
               else if (repsDiff < 0)
-                _buildChangeIndicator('${repsDiff} повт', Colors.red),
+                _buildChangeIndicator('${repsDiff} повт', Theme.of(context).colorScheme.error),
             ],
           ),
       ],

@@ -127,7 +127,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
   // ПУСТОЕ СОСТОЯНИЕ
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -135,12 +135,13 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
           SizedBox(height: 16),
           Text(
             'Нет тренировок',
-            style: TextStyle(fontSize: 20, color: Colors.grey),
+            style: TextStyle(fontSize: 20, color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           SizedBox(height: 8,),
           Text(
             'Нажмите + чтобы создать первую',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -178,7 +179,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
                 // КНОПКА УДАЛЕНИЯ
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
                   onPressed: () => _deleteTemplate(index),
                 ),
               ],
@@ -267,7 +268,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red
+                    backgroundColor: Theme.of(context).colorScheme.error,
                 ),
                 child: const Text('Удалить'),
               ),
@@ -301,7 +302,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red
+                  backgroundColor: Theme.of(context).colorScheme.error,
 
                 ),
                 child: const Text('Очистить'),

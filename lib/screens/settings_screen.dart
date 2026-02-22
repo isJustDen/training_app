@@ -91,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
           _buildSectionHeader('Данные'),
           Card(
             child: ListTile(
-              leading: const Icon(Icons.delete, color:Colors.red),
+              leading: Icon(Icons.delete, color:Theme.of(context).colorScheme.error),
               title: const Text('Очистить все данные'),
               subtitle: const Text('Удалить все тренировки и настройки'),
               onTap: _showClearDataDialog,
@@ -111,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-         // color: Theme.of(context).primaryColor,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -139,7 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
                 Navigator.pop(context);
               },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: Theme.of(context).colorScheme.error,
                 ),
               child: const Text('Очистить'),
             ),
