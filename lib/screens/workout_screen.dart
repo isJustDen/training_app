@@ -932,13 +932,44 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
 
+    final isTooShort = duration.inMinutes < 5;
+
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Завершить тренировку?'),
-          content: Text('Продолжительность: ${minutes}: ${seconds.toString().padLeft(2, '0')}\n'
-                        'Хотите завершить тренировку?'
-          ),
+          title: Text(isTooShort ? 'Тренировка слишком короткая':'Завершить тренировку?'),
+          content:Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text('Продолжительность: ${minutes}: ${seconds.toString().padLeft(2, '0')}\n'
+              ),
+              if (isTooShort) ... [
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.4)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.warning_amber, color: Colors.orange, size: 18,),
+                      SizedBox(width: 8,),
+                      Expanded(
+                          child: Text(
+                              'Тренировка короче 5 минут не учитываются в статистике времени.',
+                            style: TextStyle(fontSize: 13, color: Colors.orange),
+                          ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else
+                const Text('Хотите завершить тренировку?'),
+            ],
+    ),
           actions: [
             TextButton(
               onPressed : () => Navigator.pop(context),
@@ -969,9 +1000,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   print('${progress.exercise.name}:'
                       '${progress.completedSets} подхода * ${progress.currentReps} повторений ='
                       '$totalReps всего повторений');
-
-
                 }
+                final recordedDuration = isTooShort ? 0 : duration.inSeconds;
 
                 // СОЗДАЕМ ЗАПИСЬ В ИСТОРИИ
                 final workoutHistory = WorkoutHistory(
@@ -979,7 +1009,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   templateId: widget.template.id,
                   date: DateTime.now(),
                   exercises: completedExercises,
-                  duration: duration.inSeconds,
+                  duration: recordedDuration,
                 );
 
                 // СОХРАНЯЕМ В ИСТОРИЮ
@@ -1001,9 +1031,13 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                 // ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ О СОХРАНЕНИИ
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Тренировка сохранена в историю'),
-                    backgroundColor: Colors.green,
+                  SnackBar(
+                    content: Text(
+                        isTooShort
+                        ? 'Сохранено без учёта времени ( меньше 5 минут)'
+                            : 'Тренировка сохранена в историю'
+                    ),
+                    backgroundColor: isTooShort ? Colors.orange : Colors.green,
                   ),
                 );
 

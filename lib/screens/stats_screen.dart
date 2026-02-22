@@ -236,9 +236,16 @@ class _StatsScreenState extends State<StatsScreen>{
     final totalVolume = _workoutHistory.fold<double>(
       0, (sum, workout) => sum + workout.totalVolume
     );
-    final avgDuration = _workoutHistory.fold<int>(
-      0, (sum, workout) => sum + workout.duration
-    ) / (totalWorkouts > 0 ? totalWorkouts : 1);
+
+    // ФИЛЬТРУЕМ — только реальные тренировки (duration > 0)
+    final validWorkouts = _workoutHistory
+      .where((w) => w.duration > 0)
+      .toList();
+
+    final avgDuration = validWorkouts.isEmpty
+        ? 0.0
+        : validWorkouts.fold<int>(0, (sum, w) => sum + w.duration)/
+        validWorkouts.length;
 
     return Card(
       child: Padding(
