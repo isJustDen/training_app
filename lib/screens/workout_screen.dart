@@ -120,6 +120,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     final circleInfo = _isInCircleMode && _workoutCircles.isNotEmpty
         ? ' | Круг ${_currentCircleIndex + 1}/${_workoutCircles.length}'
         : '';
+    final exerciseInfo = _exercisesProgress.isEmpty
+      ? 'Нет упражнений'
+        : '${_currentExerciseIndex+1}/${_exercisesProgress.length} упражнений';
 
     return AppBar(
       title: Column(
@@ -130,7 +133,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             style: const TextStyle(fontSize: 18),
           ),
           Text(
-            '${_currentCircleIndex +1}/${_exercisesProgress.length} упражнений',
+            exerciseInfo,
             style: const TextStyle(fontSize: 12),
           ),
         ],
@@ -156,14 +159,48 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             onComplete: _endRestPeriod,
             onSkip: _endRestPeriod,
             // ДОБАВЛЯЕМ НАЗВАНИЕ УПРАЖНЕНИЯ ДЛЯ УВЕДОМЛЕНИЯ
-            exerciseName: _exercisesProgress[_currentExerciseIndex].exercise.name,
+            exerciseName: _exercisesProgress.isNotEmpty
+            ?_exercisesProgress[_currentExerciseIndex].exercise.name
+            : "Упражнение",
           ),
 
         // ТАБЛИЦА УПРАЖНЕНИЙ
         Expanded(
-            child: _buildExercisesTable(),
+            child:  _exercisesProgress.isEmpty
+            ? _buildEmptyWorkout()
+            : _buildExercisesTable(),
         ),
       ],
+    );
+  }
+
+  // НОВЫЙ ВИДЖЕТ — пустая тренировка
+  Widget _buildEmptyWorkout(){
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.fitness_center, size: 64,
+          color: Theme.of(context).colorScheme.onSurfaceVariant),
+
+          const SizedBox(height: 16),
+
+          Text(
+            'В этой тренировке нет урпажнений',
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Вернуться назад'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -553,6 +590,21 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // НИЖНЯЯ ПАНЕЛЬ (BottomAppBar)
   Widget _buildBottomBar(){
+    // ✅ GUARD — если список пуст, показываем заглушку
+    if (_exercisesProgress.isEmpty){
+      return BottomAppBar(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Center(
+            child: Text(
+              'Нет упражнений, добавьте их в шаблоне.',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ),
+      );
+    }
+
     return BottomAppBar(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
