@@ -301,5 +301,26 @@ class StorageService {
     return await SharedPreferences.getInstance();
   }
 
+  // ОЧИСТИТЬ ИСТОРИЮ ОДНОГО УПРАЖНЕНИЯ ПО ИМЕНИ
+  static Future<void> clearExerciseHistory(String exerciseName) async {
+    final history = await loadHistory();
 
+      // Проходим по каждой тренировке и удаляем упражнение из неё
+      final updatedHistory = history.map((workout) {
+        final updatedExercises = workout.exercises
+            .where((e) => e.name != exerciseName)
+            .toList();
+        return workout.copyWith(exercises: updatedExercises);
+    }).toList();
+
+      await saveHistory(updatedHistory);
+      print('История упражнения "$exerciseName" очищена');
+  }
+
+  // ОЧИСТИТЬ ТОЛЬКО ИСТОРИЮ ТРЕНИРОВОК (шаблоны не трогаем)
+  static Future<void> clearHistoryOnly() async {
+    final prefs = await _prefs;
+    await prefs.remove(_historyKey);
+    print('История тренировок очищена');
+  }
 }

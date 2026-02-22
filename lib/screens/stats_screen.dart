@@ -75,22 +75,6 @@ class _StatsScreenState extends State<StatsScreen>{
     setState(() => _isLoading = false);
   }
 
-  // // ПОЛУЧИТЬ ВСЕ УНИКАЛЬНЫЕ УПРАЖНЕНИЯ ИЗ ИСТОРИИ
-  // List<Exercise> _getAllExercisesFromHistory(){
-  //   Set<String> uniqueNames = {};
-  //   List<Exercise> allExercises = [];
-  //
-  //   for (var workout in _workoutHistory){
-  //     for (var exercise in workout.exercises){
-  //       if (!uniqueNames.contains(exercise.name)){
-  //         uniqueNames.add(exercise.name);
-  //         allExercises.add(exercise);
-  //       }
-  //     }
-  //   }
-  //   return allExercises;
-  // }
-
   // ПОЛУЧИТЬ УПРАЖНЕНИЯ ИЗ ПОСЛЕДНЕЙ ТРЕНИРОВКИ
   List<Exercise> _getCurrentExercisesFromLastWorkout(){
     if (_workoutHistory.isEmpty) return [];
@@ -112,6 +96,84 @@ class _StatsScreenState extends State<StatsScreen>{
   AppBar _buildAppBar(){
     return AppBar(
       title: const Text('Статистика'),
+      actions: [
+        // КНОПКА ОЧИСТКИ ВСЕЙ СТАТИСТИКИ
+        IconButton(
+            onPressed: _showClearAllDialog,
+            icon: Icon(Icons.delete_sweep,  color: Theme.of(context).colorScheme.error,),
+            tooltip: 'Очистить всю статистику тренировок?',
+        ),
+      ],
+    );
+  }
+
+  // ДИАЛОГ ОЧИСТКИ ВСЕЙ СТАТИСТИКИ
+  void _showClearAllDialog(){
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Очистить всю статистику?'),
+        content: const Text(
+            'Вся история тренировок будет удалена \n '
+                'Шаблоны и упражнения останутся нетронутыми'
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+              onPressed: () async {
+                await StorageService.clearHistoryOnly();
+                Navigator.pop(context);
+                await _loadData(); // перезагрузка экрана
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                  content: Text('Вся статистика очищена'),
+                  backgroundColor:Colors.orange,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Очистить')
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ДИАЛОГ ОЧИСТКИ ОДНОГО УПРАЖНЕНИЯ
+  void _showClearExerciseDialog(String exerciseName) {
+    showDialog
+      (context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Сбросить данные'),
+          content: Text(
+            'История упражнения "$exerciseName" будет удалена \n '
+                'Само упражнение в шаблоне останется',
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Отмена'),
+            ),
+            ElevatedButton(
+                onPressed: () async {
+                  await StorageService.clearExerciseHistory(exerciseName);
+                  Navigator.pop(context);
+                  await _loadData();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('История ${exerciseName} сброшена'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Сбросить'),
+            ),
+          ],
+        ),
     );
   }
 
@@ -297,13 +359,29 @@ class _StatsScreenState extends State<StatsScreen>{
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // НАЗВАНИЕ УПРАЖНЕНИЯ
-            Text(
-              exerciseName,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            // НАЗВАНИЕ УПРАЖНЕНИЯ + КНОПКА УДАЛЕНИЯ
+            Row(
+              children: [
+                Expanded(child:
+                  Text(
+                  exerciseName,
+                    style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                // КНОПКА СБРОСА ДАННЫХ УПРАЖНЕНИЯ
+                IconButton(
+                    onPressed: () => _showClearExerciseDialog(exerciseName),
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    color: Colors.red.shade300,
+                    tooltip: 'Сбросить данные упражнения',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
 
