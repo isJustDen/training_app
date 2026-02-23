@@ -14,6 +14,8 @@ class Exercise {
   int circleNumber; // Номер круга (0 = не в круге, 1+ = номер круга)
   int circleOrder;  // Порядок в круге (1, 2, 3...)
 
+  List<Map<String, dynamic>> completedSets;
+
   // КОНСТРУКТОР
   Exercise({
     required this.id,
@@ -26,7 +28,8 @@ class Exercise {
     this.isInCircle = false,
     this.circleNumber = 0,
     this.circleOrder = 0,
-  });
+    List<Map<String, dynamic>>? completedSets,
+  }) : completedSets = completedSets ?? [];
 
 // МЕТОД ДЛЯ КОПИРОВАНИЯ С ИЗМЕНЕНИЯМИ
   Exercise copyWith({
@@ -39,6 +42,7 @@ class Exercise {
     bool? isInCircle,
     int? circleNumber,
     int? circleOrder,
+    List<Map<String, dynamic>>? completedSets,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -50,6 +54,7 @@ class Exercise {
       isInCircle: isInCircle ?? this.isInCircle,
       circleNumber: circleNumber ?? this.circleNumber,
       circleOrder: circleOrder ?? this.circleOrder,
+      completedSets: completedSets ?? this.completedSets,
     );
   }
 
@@ -66,6 +71,7 @@ class Exercise {
       'isInCircle': isInCircle,
       'circleOrder':circleOrder,
       'circleNumber':circleNumber,
+      'completedSets': completedSets,
       };
     }
 
@@ -82,6 +88,9 @@ class Exercise {
       isInCircle: map['isInCircle']??false,
       circleOrder: map['circleOrder']??0,
       circleNumber: map['circleNumber']??0,
+      completedSets: List<Map<String, dynamic>>.from(
+          (map['completedSets']as List?)?.map((s)=> Map<String,dynamic>.from(s)) ?? [],
+      ),
     );
   }
 

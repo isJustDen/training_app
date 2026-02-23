@@ -3,7 +3,6 @@
 import 'package:fitflow/models/workout_circle.dart';
 import 'package:fitflow/utils/circle_utils.dart';
 
-import '../models/set_result.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
@@ -669,6 +668,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   Widget _buildHistoryIndicator(Exercise current, Exercise lastResult){
     final weightDiff = current.weight - lastResult.weight;
     final repsDiff = current.reps - lastResult.reps;
+    final hasSetsData = lastResult.completedSets.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -677,14 +677,72 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         // ИНФОРМАЦИЯ О ПРОШЛОЙ ТРЕНИРОВКЕ
         Row(
           children: [
-            const Icon(Icons.history, size: 12, color: Colors.grey),
+            Icon(Icons.history, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(width: 4),
             Text(
-              'Прошлый раз: ${lastResult.weight} кг × ${lastResult.reps} ',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              'Прошлый раз:',
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+              ),
             )
           ],
         ),
+        const SizedBox(height: 4,),
+
+        // ЕСЛИ ЕСТЬ ДАННЫЕ ПО ПОДХОДАМ — показываем каждый
+        if (hasSetsData)
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: lastResult.completedSets.asMap().entries.map((entry){
+              final setIndex = entry.key;
+              final set = entry.value;
+              final reps = set['reps'] as int;
+              final weight = (set['weight'] as num).toDouble();
+
+              // СРАВНИВАЕМ С ТЕКУЩИМ ПЛАНОМ
+              final plannedReps = current.reps;
+              final isAbovePlan = reps >= plannedReps;
+
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isAbovePlan
+                      ? Colors.green.withOpacity(0.1)
+                      : Theme.of(context).colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isAbovePlan
+                        ? Colors.green.withOpacity(0.4)
+                        : Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                child: Text(
+                  '${setIndex + 1}:  ${reps}×${weight.toStringAsFixed(1)} кг',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isAbovePlan
+                      ? Colors.green
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }).toList(),
+          )
+
+        // ЕСЛИ СТАРАЯ ЗАПИСЬ БЕЗ ПОДХОДОВ — показываем по-старому
+        else
+          Text('${lastResult.weight}кг×${lastResult.reps} повт. (итого) ',
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        const SizedBox(height: 6,),
+
         // ИНДИКАТОР ИЗМЕНЕНИЙ
         if (weightDiff != 0 || repsDiff != 0)
           Row(
@@ -985,6 +1043,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                 // ПРОХОДИМ ПО ВСЕМ УПРАЖНЕНИЯМ И СОБИРАЕМ ДАННЫЕ
                 for(var progress in _exercisesProgress){
+                  final setsData = progress.completedSets.map((set) =>{
+                  'reps': set.completedReps,
+                    'weight': set.weight,
+                    'setNumber': set.setNumber,
+                  }).toList();
                   // РАССЧИТЫВАЕМ ОБЩЕЕ КОЛИЧЕСТВО ПОВТОРЕНИЙ
                   int totalReps = progress.totalReps;
                   // ДОБАВЛЯЕМ В СПИСОК
@@ -993,8 +1056,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     name: progress.exercise.name,
                     weight: progress.currentWeight,
                     sets: progress.completedSets.length,
-                    reps: totalReps,
+                    reps: progress.totalReps,
                     restTime: progress.exercise.restTime,
+                    completedSets: setsData,
                   ));
 
                   print('${progress.exercise.name}:'
