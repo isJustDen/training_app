@@ -235,7 +235,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           decoration: BoxDecoration(
             color: _getExerciseBackgroundColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
             border: Border.all(
-              color: _getExerciseBackgroundColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
+              color: _getExerciseBorderColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
               width: isCurrent ? 2:1,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -401,9 +401,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       Color? circleColor,
       ){
     if (isCurrent){
-      return Colors.blue.withOpacity(0.1);
-    } else if (isInCircle && isCurrentCircle) {
-      return circleColor!.withOpacity(0.05);
+      return Theme.of(context).colorScheme.primary.withOpacity(0.15);
+    }
+    if (isInCircle && isCurrentCircle) {
+      return circleColor!.withOpacity(0.07);
     }
     return Theme.of(context).colorScheme.surface;
   }
