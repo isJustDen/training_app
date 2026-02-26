@@ -167,11 +167,13 @@ class StatsService {
   Map<String, ExerciseStats> stats = {};
 
   // Получаем реальные значения из последней тренировки
-  final lastWorkoutValues = getLastWorkoutValues(history);
 
   for (var templateExercise in currentExercises) {
     final exerciseName = templateExercise.name;
-    final realExercise = lastWorkoutValues[exerciseName] ?? templateExercise;
+
+    Exercise? lastRealResult = _getLastResultExercise(history, exerciseName);
+
+    final realExercise = lastRealResult ?? templateExercise;
 
     stats[exerciseName] = ExerciseStats(
       efficiency: calculateEfficiency(
@@ -203,23 +205,24 @@ class StatsService {
   return stats;
   }
 
-  // ПОЛУЧИТЬ РЕАЛЬНЫЕ ЗНАЧЕНИЯ ИЗ ПОСЛЕДНЕЙ ТРЕНИРОВКИ
-  static Map<String, Exercise> getLastWorkoutValues(List<WorkoutHistory> history){
-    Map<String, Exercise> lastValues = {};
+  // ИЩЕТ ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ КОНКРЕТНОГО УПРАЖНЕНИЯ
+  static Exercise? _getLastResultExercise(
+      List<WorkoutHistory> history,
+      String exerciseName,){
+    // Сортируем от новых к старым
+    final sorted = List<WorkoutHistory>.from(history)
+        ..sort((a, b) => b.date.compareTo(a.date));
 
-    if (history.isEmpty) return lastValues;
-
-    final sortedHistory = List<WorkoutHistory>.from(history)
-      .. sort((a, b) => b.date.compareTo(a.date));
-
-    final lastWorkout = sortedHistory.first;
-
-    for(var exercise in lastWorkout.exercises){
-      lastValues[exercise.name] = exercise;
+    for (var workout in sorted){
+      for (var exercise in workout.exercises){
+        if (exercise.name == exerciseName && exercise.sets > 0) {
+          return exercise;
+        }
+      }
     }
-
-    return lastValues;
+    return null;
   }
+
 
   //МЕТОДЫ РАСЧЁТА УРОВНЯ ПРОГРЕССА
   static double calculateVolumeProgress({
