@@ -291,7 +291,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             ),
             ElevatedButton(
                 onPressed: () async{
-                  // ОЧИЩАЕМ ХРАНИЛИЩЕ
+                // ОЧИЩАЕМ ХРАНИЛИЩЕ
                   await StorageService.clearAllData();
 
                   // ОЧИЩАЕМ ЛОКАЛЬНЫЙ СПИСОК
@@ -319,7 +319,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
       MaterialPageRoute(
           builder: (context) => WorkoutScreen(template: template),
       ),
-    );
+    ).then((_) async {
+      await _loadTemplates();
+    });
   }
 
 //МЕТОД СТАТИСТИКИ

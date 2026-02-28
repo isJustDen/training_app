@@ -323,4 +323,33 @@ class StorageService {
     await prefs.remove(_historyKey);
     print('История тренировок очищена');
   }
+
+  // ОБНОВИТЬ ВЕСА УПРАЖНЕНИЙ В ШАБЛОНЕ
+  static Future<void> updateTemplateWeights(
+      String templateId,
+      Map<String, double> updatedWeights,
+      ) async {
+    final templates = await loadTemplates();
+
+    final updatedTemplates = templates.map((template) {
+      if (template.id != templateId) return template;
+
+      // Обновляем веса упражнений в нужном шаблоне
+      final updatedExercises = template.exercises.map((exercise) {
+        final newWeight = updatedWeights[exercise.name];
+        if (newWeight != null && newWeight != exercise.weight) {
+          return exercise.copyWith(weight: newWeight);
+        }
+        return exercise;
+      }).toList();
+
+      return template.copyWith(
+        exercises: updatedExercises,
+        updatedAt: DateTime.now(),
+      );
+      }).toList();
+
+    await saveTemplates(updatedTemplates);
+    print('Веса обновленыв шаблоне');
+  }
 }

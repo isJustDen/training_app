@@ -21,9 +21,9 @@ class WorkoutScreen extends StatefulWidget{
   final WorkoutTemplate template;
 
   const WorkoutScreen({
-   super.key,
-   required this.template,
-});
+    super.key,
+    required this.template,
+  });
 
   @override
   State<WorkoutScreen> createState() => _WorkoutScreenState();
@@ -68,8 +68,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     // СОЗДАЕМ ПРОГРЕСС ДЛЯ КАЖДОГО УПРАЖНЕНИЯ
     _exercisesProgress = widget.template.exercises.map((exercise){
       return ExerciseProgress(
-          exercise: exercise,
-          currentWeight: exercise.weight,
+        exercise: exercise,
+        currentWeight: exercise.weight,
         currentReps: 0,
       );
     }).toList();
@@ -120,7 +120,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         ? ' | Круг ${_currentCircleIndex + 1}/${_workoutCircles.length}'
         : '';
     final exerciseInfo = _exercisesProgress.isEmpty
-      ? 'Нет упражнений'
+        ? 'Нет упражнений'
         : '${_currentExerciseIndex+1}/${_exercisesProgress.length} упражнений';
 
     return AppBar(
@@ -159,15 +159,15 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             onSkip: _endRestPeriod,
             // ДОБАВЛЯЕМ НАЗВАНИЕ УПРАЖНЕНИЯ ДЛЯ УВЕДОМЛЕНИЯ
             exerciseName: _exercisesProgress.isNotEmpty
-            ?_exercisesProgress[_currentExerciseIndex].exercise.name
-            : "Упражнение",
+                ?_exercisesProgress[_currentExerciseIndex].exercise.name
+                : "Упражнение",
           ),
 
         // ТАБЛИЦА УПРАЖНЕНИЙ
         Expanded(
-            child:  _exercisesProgress.isEmpty
-            ? _buildEmptyWorkout()
-            : _buildExercisesTable(),
+          child:  _exercisesProgress.isEmpty
+              ? _buildEmptyWorkout()
+              : _buildExercisesTable(),
         ),
       ],
     );
@@ -180,7 +180,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.fitness_center, size: 64,
-          color: Theme.of(context).colorScheme.onSurfaceVariant),
+              color: Theme.of(context).colorScheme.onSurfaceVariant),
 
           const SizedBox(height: 16),
 
@@ -195,8 +195,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           const SizedBox(height: 24),
 
           ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Вернуться назад'),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Вернуться назад'),
           ),
         ],
       ),
@@ -221,14 +221,14 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         final isInCircle = exercise.isInAnyCircle;
         final circleNumber = exercise.circleNumber;
         final circleColor = isInCircle
-          ? CircleUtils.getCircleColor(circleNumber)
+            ? CircleUtils.getCircleColor(circleNumber)
             : null;
 
         // ОПРЕДЕЛЯЕМ, ЯВЛЯЕТСЯ ЛИ ЭТО ТЕКУЩИМ КРУГОМ
 
         final isCurrentCircle = _isInCircleMode &&
-        _currentCircleIndex <_workoutCircles.length &&
-        _workoutCircles[_currentCircleIndex].number == circleNumber;
+            _currentCircleIndex <_workoutCircles.length &&
+            _workoutCircles[_currentCircleIndex].number == circleNumber;
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -270,7 +270,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                    'Круг $circleNumber (${exercise.circleOrder})',
+                                  'Круг $circleNumber (${exercise.circleOrder})',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: circleColor,
@@ -358,30 +358,30 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                     // КНОПКИ ДЕЙСТВИЙ
                     Expanded(
-                        flex: 2,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
-                            IconButton(
-                                onPressed: progress.isCompleted
-                                    ? null
-                                    : () => _completeSet(index),
-                                icon: Icon(
-                                  Icons.check_circle,
-                                  color: progress.isCompleted ? Colors.grey: Colors.green,
-                                ),
-                                tooltip: 'Завершить подход',
+                      flex: 2,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
+                          IconButton(
+                            onPressed: progress.isCompleted
+                                ? null
+                                : () => _completeSet(index),
+                            icon: Icon(
+                              Icons.check_circle,
+                              color: progress.isCompleted ? Colors.grey: Colors.green,
                             ),
+                            tooltip: 'Завершить подход',
+                          ),
 
-                            // КНОПКА ТАЙМЕРА
-                            IconButton(
-                              icon: const Icon(Icons.timer, color: Colors.orange),
-                              onPressed: () => _startRestTimer(index),
-                              tooltip: 'Таймер',
-                            ),
-                          ],
-                        ),
+                          // КНОПКА ТАЙМЕРА
+                          IconButton(
+                            icon: const Icon(Icons.timer, color: Colors.orange),
+                            onPressed: () => _startRestTimer(index),
+                            tooltip: 'Таймер',
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -488,39 +488,39 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     VoidCallback? onDecrement,
   }) {
     return Expanded(
-        child: GestureDetector(
-          onTap: onEdit,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Theme.of(context).colorScheme.outline),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, size: 16, color: color ?? Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      title,
-                      style: TextStyle(
+      child: GestureDetector(
+        onTap: onEdit,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Theme.of(context).colorScheme.outline),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 16, color: color ?? Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    title,
+                    style: TextStyle(
                         fontSize: 13,
                         color: color ?? Colors.grey.shade700,
                         fontWeight: FontWeight.bold
-                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
 
-                if (onIncrement != null && onDecrement != null)
-                // ДЛЯ ПОВТОРЕНИЙ - ДВЕ КНОПКИ (+ и -) ПО БОКАМ ОТ ЗНАЧЕНИЯ
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+              if (onIncrement != null && onDecrement != null)
+              // ДЛЯ ПОВТОРЕНИЙ - ДВЕ КНОПКИ (+ и -) ПО БОКАМ ОТ ЗНАЧЕНИЯ
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     GestureDetector(
                       onTap: onDecrement,
                       child: Container(
@@ -533,46 +533,46 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                           Icons.remove,
                           size: 20,
                           color: Theme.of(context).colorScheme.error,
-                          ),
                         ),
                       ),
+                    ),
 
-                      const SizedBox(width: 4),
+                    const SizedBox(width: 4),
 
-                      Container(
-                        constraints: BoxConstraints(minWidth: 40),
-                        child: Text(
-                          value,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: color ?? Theme.of(context).colorScheme.onSurface,
-                          ),
+                    Container(
+                      constraints: BoxConstraints(minWidth: 40),
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: color ?? Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
+                    ),
 
-                      const SizedBox(width: 4),
+                    const SizedBox(width: 4),
 
-                      GestureDetector(
-                        onTap: onIncrement,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade100,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            size: 20,
-                            color: Colors.green,
-                          ),
+                    GestureDetector(
+                      onTap: onIncrement,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 20,
+                          color: Colors.green,
                         ),
                       ),
-                    ],
-                  )
-                else
-                // ДЛЯ ОСТАЛЬНЫХ ПАРАМЕТРОВ - ПРОСТО ТЕКСТ
+                    ),
+                  ],
+                )
+              else
+              // ДЛЯ ОСТАЛЬНЫХ ПАРАМЕТРОВ - ПРОСТО ТЕКСТ
                 Text(
                   value,
                   style: TextStyle(
@@ -581,10 +581,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     color: color ?? Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
+      ),
     );
   }
 
@@ -634,8 +634,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 Text(
                   '${_exercisesProgress[_currentExerciseIndex].exercise.name}',
                   style: const TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
@@ -653,10 +653,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               icon: const Icon(Icons.arrow_forward, size: 15),
               label: const Text('Вперёд'),
               onPressed: _currentExerciseIndex < _exercisesProgress.length - 1
-                ? _nextExercise
-                : null,
+                  ? _nextExercise
+                  : null,
               style: ElevatedButton.styleFrom(
-               minimumSize: const Size(100, 40),
+                minimumSize: const Size(100, 40),
               ),
             ),
           ],
@@ -683,9 +683,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             Text(
               'Прошлый раз:',
               style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
               ),
             )
           ],
@@ -726,7 +726,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: isAbovePlan
-                      ? Colors.green
+                        ? Colors.green
                         : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -838,8 +838,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     if (progress.currentReps == 0){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Укажите количетво повторений для ${progress.exercise.name}'),
-            backgroundColor: Colors.orange,
+          content: Text('Укажите количетво повторений для ${progress.exercise.name}'),
+          backgroundColor: Colors.orange,
         ),
       );
       return;
@@ -917,7 +917,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     onChanged: (value){
                       setState(() {
                         selectedTime = value.round();
-                        });
+                      });
                     },
                   ),
 
@@ -932,15 +932,15 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               ),
               actions: [
                 TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Отмена'),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Отмена'),
                 ),
                 ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _startTimer(selectedTime * 60);
-                    },
-                    child: const Text('Запустить'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _startTimer(selectedTime * 60);
+                  },
+                  child: const Text('Запустить'),
                 ),
               ],
             );
@@ -950,7 +950,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     );
   }
 
- // ЗАПУСК ТАЙМЕРА
+  // ЗАПУСК ТАЙМЕРА
 
   void _startTimer(int seconds){
     setState(() {
@@ -994,128 +994,256 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     final isTooShort = duration.inMinutes < 5;
 
     showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(isTooShort ? 'Тренировка слишком короткая':'Завершить тренировку?'),
-          content:Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text('Продолжительность: ${minutes}: ${seconds.toString().padLeft(2, '0')}\n'
-              ),
-              if (isTooShort) ... [
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withOpacity(0.4)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.warning_amber, color: Colors.orange, size: 18,),
-                      SizedBox(width: 8,),
-                      Expanded(
-                          child: Text(
-                              'Тренировка короче 5 минут не учитываются в статистике времени.',
-                            style: TextStyle(fontSize: 13, color: Colors.orange),
-                          ),
-                      ),
-                    ],
-                  ),
-                ),
-              ] else
-                const Text('Хотите завершить тренировку?'),
-            ],
-    ),
-          actions: [
-            TextButton(
-              onPressed : () => Navigator.pop(context),
-              child: const Text('Продолжить'),
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isTooShort ? 'Тренировка слишком короткая':'Завершить тренировку?'),
+        content:Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text('Продолжительность: ${minutes}: ${seconds.toString().padLeft(2, '0')}\n'
             ),
+            if (isTooShort) ... [
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.4)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: Colors.orange, size: 18,),
+                    SizedBox(width: 8,),
+                    Expanded(
+                      child: Text(
+                        'Тренировка короче 5 минут не учитываются в статистике времени.',
+                        style: TextStyle(fontSize: 13, color: Colors.orange),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else
+              const Text('Хотите завершить тренировку?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed : () => Navigator.pop(context),
+            child: const Text('Продолжить'),
+          ),
 
-            // КНОПКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
-            ElevatedButton(
-              onPressed: () async {
-
-                // СОЗДАЕМ СПИСОК УПРАЖНЕНИЙ С ПРАВИЛЬНЫМИ ДАННЫМИ
-                List<Exercise> completedExercises = [];
-
-                // ПРОХОДИМ ПО ВСЕМ УПРАЖНЕНИЯМ И СОБИРАЕМ ДАННЫЕ
-                for(var progress in _exercisesProgress){
-                  final setsData = progress.completedSets.map((set) =>{
+          // КНОПКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // 1. СОБИРАЕМ ДАННЫЕ
+              List<Exercise> completedExercises = [];
+              // ПРОХОДИМ ПО ВСЕМ УПРАЖНЕНИЯМ И СОБИРАЕМ ДАННЫЕ
+              for(var progress in _exercisesProgress){
+                final setsData = progress.completedSets.map((set) =>{
                   'reps': set.completedReps,
-                    'weight': set.weight,
-                    'setNumber': set.setNumber,
-                  }).toList();
-                  // РАССЧИТЫВАЕМ ОБЩЕЕ КОЛИЧЕСТВО ПОВТОРЕНИЙ
-                  int totalReps = progress.totalReps;
-                  // ДОБАВЛЯЕМ В СПИСОК
-                  completedExercises.add(Exercise(
-                    id: progress.exercise.id,
-                    name: progress.exercise.name,
-                    weight: progress.currentWeight,
-                    sets: progress.completedSets.length,
-                    reps: progress.totalReps,
-                    restTime: progress.exercise.restTime,
-                    completedSets: setsData,
-                  ));
+                  'weight': set.weight,
+                  'setNumber': set.setNumber,
+                }).toList();
 
-                  print('${progress.exercise.name}:'
-                      '${progress.completedSets} подхода * ${progress.currentReps} повторений ='
-                      '$totalReps всего повторений');
-                }
-                final recordedDuration = isTooShort ? 0 : duration.inSeconds;
+                // ДОБАВЛЯЕМ В СПИСОК
+                completedExercises.add(Exercise(
+                  id: progress.exercise.id,
+                  name: progress.exercise.name,
+                  weight: progress.currentWeight,
+                  sets: progress.completedSets.length,
+                  reps: progress.totalReps,
+                  restTime: progress.exercise.restTime,
+                  completedSets: setsData,
+                ));
+              }
 
-                // СОЗДАЕМ ЗАПИСЬ В ИСТОРИИ
-                final workoutHistory = WorkoutHistory(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  templateId: widget.template.id,
-                  date: DateTime.now(),
-                  exercises: completedExercises,
-                  duration: recordedDuration,
-                );
+              final recordedDuration = isTooShort ? 0 : duration.inSeconds;
 
-                // СОХРАНЯЕМ В ИСТОРИЮ
-                await StorageService.addToHistory(workoutHistory);
+              // 2. СОХРАНЯЕМ В ИСТОРИЮ
+              await StorageService.addToHistory(WorkoutHistory(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                templateId: widget.template.id,
+                date: DateTime.now(),
+                exercises: completedExercises,
+                duration: recordedDuration,
+              ),
+              );
 
-                // ВОСПРОИЗВОДИМ ЗВУК ЗАВЕРШЕНИЯ
-                await SoundService.playWorkoutCompleteSound(context);
+              // 3. ВОСПРОИЗВОДИМ ЗВУК ЗАВЕРШЕНИЯ
+              SoundService.playWorkoutCompleteSound(context);
 
-                // ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ О ЗАВЕРШЕНИИ ТРЕНИРОВКИ (ДОБАВЛЕНО)
-                final notificationService = NotificationService();
-                await notificationService.showWorkoutCompleteNotification(
-                  title: 'Тренировка завершена!',
-                  body: '${widget.template.name}. Продолжительность: ${minutes} минут(ы) ${seconds} секунд(ы)',
-                  context: context,
-                );
+              // 4. УВЕДОМЛЕНИЕ О ЗАВЕРШЕНИИ ТРЕНИРОВКИ
+              await NotificationService().showWorkoutCompleteNotification(
+                title: 'Тренировка завершена!',
+                body: '${widget.template.name}. Продолжительность: ${minutes} минут(ы) ${seconds} секунд(ы)',
+                context: context,
+              );
 
-                print('Тренировка сохранена в историю!');
-                Navigator.pop(context); //Закрыть диалог
-
-                // ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ О СОХРАНЕНИИ
+              // 6. ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ О СОХРАНЕНИИ
+              if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                         isTooShort
-                        ? 'Сохранено без учёта времени ( меньше 5 минут)'
+                            ? 'Сохранено без учёта времени ( меньше 5 минут)'
                             : 'Тренировка сохранена в историю'
                     ),
                     backgroundColor: isTooShort ? Colors.orange : Colors.green,
+                    duration:const Duration(seconds: 4),
                   ),
                 );
+              }
 
-                // ЗАДЕРЖКА ДЛЯ ПОКАЗА SNACKBAR
-                await Future.delayed(const Duration(milliseconds: 2000));
+              // 7. ПРОВЕРЯЕМ ИЗМЕНЕНИЯ ВЕСОВ
+              final weightChanged = <String, double> {};
 
-                Navigator.pop(context); // вернуться к списку тренировок
-              },
-              child: const Text('Завершить и сохранить'),
+              for (var progress in _exercisesProgress){
+                final originalWeight = progress.exercise.weight;
+                final finalWeight = progress.currentWeight;
+
+                if (finalWeight != originalWeight) {
+                  weightChanged[progress.exercise.name] = finalWeight;
+                }
+              }
+              // ЕСЛИ ЕСТЬ ИЗМЕНЕНИЯ — предлагаем сохранить в шаблон
+              if (weightChanged.isNotEmpty && mounted) {
+                await _showSaveWeightsDialog(weightChanged);
+              }
+              if (mounted) {
+                Navigator.of(context, rootNavigator: false).popUntil(
+                      (route) => route.isFirst,
+                );
+              };
+            },
+            child: const Text('Завершить и сохранить'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ДИАЛОГ ПРЕДЛОЖЕНИЯ СОХРАНЕНИЯ ИЗМЕНЕНИЙ ВЕСА
+  Future <void> _showSaveWeightsDialog(Map<String, double> weightChanged) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.fitness_center, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Обновить веса?'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('За тренировку вы изменили вес в ${weightChanged.length}'
+                '${_getExerciseWord(weightChanged.length)}:',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+
+            // СПИСОК ИЗМЕНЕНИЙ
+            ...weightChanged.entries.map((entry) {
+              final exerciseName = entry.key;
+              final newWeight = entry.value;
+
+              // Ищем оригинальный вес из прогресса
+              final originalWeight = _exercisesProgress
+                  .firstWhere((p) => p.exercise.name == exerciseName)
+                  .exercise
+                  .weight;
+
+              final diff = newWeight - originalWeight;
+              final isIncrease = diff > 0;
+
+              return Padding(
+                padding: const EdgeInsetsGeometry.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      isIncrease ? Icons.arrow_upward: Icons.arrow_downward,
+                      size: 16,
+                      color: isIncrease ? Colors.green: Colors.orange,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        exerciseName,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${originalWeight.toStringAsFixed(1)} → '
+                          '${newWeight.toStringAsFixed(1)} кг',
+                      style: TextStyle(
+                        color: isIncrease ? Colors.green : Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            const SizedBox(height: 8),
+            Text(
+              'Сохранить новые веса в шаблон тренировки?',
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
+        actions: [
+          // НЕ СОХРАНЯТЬ
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Не сохранять'),
+          ),
+
+          // СОХРАНИТЬ
+          ElevatedButton(
+            onPressed: () async {
+              await StorageService.updateTemplateWeights(
+                widget.template.id,
+                weightChanged,
+              );
+              if (mounted) Navigator.pop(context);
+              if (mounted){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Веса обновлены в шаблоне "${widget.template.name}"',
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
     );
+  }
+
+  // СКЛОНЕНИЕ СЛОВА "УПРАЖНЕНИЕ"
+  String _getExerciseWord(int count){
+    if (count % 10 == 1 && count % 100 != 11) return 'упражнение';
+    if (count % 10 >= 2 && count %10 <= 4 &&
+        (count %100 < 10 || count % 100 >= 20 )) return 'упражнениях';
+    return 'упражнениях';
   }
 
   // РЕДАКТИРОВАНИЕ ВЕСА ЧЕРЕЗ ДИАЛОГ
@@ -1126,31 +1254,31 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     );
 
     showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Вес (кг)',
-              border: OutlineInputBorder(),
-            ),
+      context: context,
+      builder: (context) => AlertDialog(
+        title: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Вес (кг)',
+            border: OutlineInputBorder(),
           ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Отмена'),
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  final weight = double.tryParse(controller.text) ?? 0.0;
-                  _updateWeight(index, weight.toString());
-                  Navigator.pop(context);
-                },
-                child: const Text('Сохранить'),
-            ),
-          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final weight = double.tryParse(controller.text) ?? 0.0;
+              _updateWeight(index, weight.toString());
+              Navigator.pop(context);
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1182,12 +1310,12 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
       // ПРЕОБРАЗУЕМ ExerciseProgress В Exercise ДЛЯ КРУГА
       final circleExercises = exercisesInCircle
-        .map((progress) => progress.exercise)
-        .toList();
+          .map((progress) => progress.exercise)
+          .toList();
 
       circles.add(WorkoutCircle(
-          number: circleNumber,
-          exercises: circleExercises,
+        number: circleNumber,
+        exercises: circleExercises,
         restTime: 90,
       ));
     }
@@ -1207,7 +1335,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         // УСТАНАВЛИВАЕМ ТЕКУЩЕЕ УПРАЖНЕНИЕ КАК ПЕРВОЕ В КРУГЕ
         final firstExerciseInCircle = _workoutCircles[0].exercises[0];
         _currentExerciseIndex = _exercisesProgress.indexWhere(
-            (progress) => progress.exercise.id == firstExerciseInCircle.id,
+              (progress) => progress.exercise.id == firstExerciseInCircle.id,
         );
       }
     });
