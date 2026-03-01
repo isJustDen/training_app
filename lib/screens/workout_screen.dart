@@ -414,14 +414,14 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             if (progress.isCompleted)
               Positioned.fill(
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
                     child: Icon(
-                      Icons.check_circle_outline,
-                      size: 260,
+                      Icons.check_circle_outline_sharp,
+                      size: 220,
                       color: Colors.green.withOpacity(0.3),
                     ),
                   ),
