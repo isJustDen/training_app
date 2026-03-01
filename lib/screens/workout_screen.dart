@@ -230,177 +230,204 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             _currentCircleIndex <_workoutCircles.length &&
             _workoutCircles[_currentCircleIndex].number == circleNumber;
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: _getExerciseBackgroundColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
-            border: Border.all(
-              color: _getExerciseBorderColor(isCurrent, isInCircle, isCurrentCircle, circleColor),
-              width: isCurrent ? 2:1,
+        return Stack(
+          children: [
+            Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _getExerciseBackgroundColor(isCurrent, isInCircle, isCurrentCircle, circleColor, progress.isCompleted),
+              border: Border.all(
+                color: _getExerciseBorderColor(isCurrent, isInCircle, isCurrentCircle, circleColor, progress.isCompleted),
+                width: isCurrent ? 2:1,
+              ),
+              borderRadius: BorderRadius.circular(8),
             ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                // ЗАГОЛОВОК СТРОКИ - НОМЕР И НАЗВАНИЕ
-                Row(
-                  children: [
-                    _buildExerciseNumberIndicator(index, exercise, isCurrent, circleColor),
-                    const SizedBox(width: 12,),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            exercise.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  // ЗАГОЛОВОК СТРОКИ - НОМЕР И НАЗВАНИЕ
+                  Row(
+                    children: [
+                      _buildExerciseNumberIndicator(index, exercise, isCurrent, circleColor),
+                      const SizedBox(width: 12,),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              exercise.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                                color: progress.isCompleted
+                                  ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                                  : null,
+                              ),
                             ),
-                          ),
-                          if (isInCircle)
-                            Row(
-                              children: [
-                                Icon(
-                                  CircleUtils.getCircleIcon(circleNumber),
-                                  size: 12,
-                                  color: circleColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Круг $circleNumber (${exercise.circleOrder})',
-                                  style: TextStyle(
-                                    fontSize: 11,
+                            if (isInCircle)
+                              Row(
+                                children: [
+                                  Icon(
+                                    CircleUtils.getCircleIcon(circleNumber),
+                                    size: 12,
                                     color: circleColor,
                                   ),
-                                ),
-                              ],
-                            ),
-
-                          // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
-                          if (lastResult != null)
-                            _buildHistoryIndicator(exercise, lastResult),
-
-
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // ПАРАМЕТРЫ УПРАЖНЕНИЯ В 2 СТРОКИ
-                // СТРОКА 1: ВЕС, ПОДХОДЫ, ПОВТОРЕНИЯ
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-
-                    // ВЕС
-                    _buildParameterCard(
-                      title: 'Вес',
-                      value: '${progress.currentWeight.toStringAsFixed(1)} кг',
-                      icon: Icons.fitness_center,
-                      onEdit: () => _showWeightEditor(index),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-
-                    // ПОДХОДЫ
-                    _buildParameterCard(
-                      title: 'Подходы',
-                      value: '${progress.completedSetsCount}/${exercise.sets}',
-                      icon: Icons.repeat,
-                      color: progress.isCompleted ? Colors.green: Theme.of(context).colorScheme.onSurface,
-                    ),
-
-                    // ПОВТОРЕНИЯ
-                    _buildParameterCard(
-                      title: 'Повторения',
-                      value: '${progress.currentReps}',
-                      icon: Icons.repeat_one,
-                      onIncrement: () => _incrementReps(index),
-                      onDecrement: () => _decrementReps(index),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // СТРОКА 2: ПРОГРЕСС И ДЕЙСТВИЯ
-                Row(
-                  children: [
-                    // ПРОГРЕСС-БАР
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LinearProgressIndicator(
-                            value: progress.progressPercentage / 100,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              progress.isCompleted ? Colors.green : Colors.blue,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${progress.progressPercentage.toStringAsFixed(0)}%',
-                            style: const TextStyle(fontSize: 12, color:Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // КНОПКИ ДЕЙСТВИЙ
-                    Expanded(
-                      flex: 2,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          if (_shouldShowTimer(exercise)) ...[
-                          // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
-                          IconButton(
-                            onPressed: progress.isCompleted
-                                ? null
-                                : () => _completeSet(index),
-                            icon: Icon(
-                              Icons.check_circle,
-                              color: progress.isCompleted ? Colors.grey: Colors.green,
-                            ),
-                            tooltip: 'Завершить подход',
-                          ),
-
-                          // КНОПКА ТАЙМЕРА
-                          IconButton(
-                            icon: const Icon(Icons.timer, color: Colors.orange),
-                            onPressed: () => _startRestTimer(index),
-                            tooltip: 'Таймер',
-                          ),
-                            ] else ...[
-                              IconButton(
-                                  onPressed: progress.isCompleted
-                                  ? null
-                                  : () => _completeSet(index),
-                                  icon: Icon(
-                                    Icons.check_circle,
-                                    color: progress.isCompleted ? Colors.grey : Colors.green,
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Круг $circleNumber (${exercise.circleOrder})',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: circleColor,
+                                    ),
                                   ),
+                                ],
+                              ),
+
+                            // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
+                            if (lastResult != null)
+                              _buildHistoryIndicator(exercise, lastResult),
+
+
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // ПАРАМЕТРЫ УПРАЖНЕНИЯ В 2 СТРОКИ
+                  // СТРОКА 1: ВЕС, ПОДХОДЫ, ПОВТОРЕНИЯ
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+
+                      // ВЕС
+                      _buildParameterCard(
+                        title: 'Вес',
+                        value: '${progress.currentWeight.toStringAsFixed(1)} кг',
+                        icon: Icons.fitness_center,
+                        onEdit: progress.isCompleted ? null : () => _showWeightEditor(index),
+                        color: progress.isCompleted ? Colors.green : Theme.of(context).colorScheme.onSurface,
+                      ),
+
+                      // ПОДХОДЫ
+                      _buildParameterCard(
+                        title: 'Подходы',
+                        value: '${progress.completedSetsCount}/${exercise.sets}',
+                        icon: Icons.repeat,
+                        color: progress.isCompleted ? Colors.green: Theme.of(context).colorScheme.onSurface,
+                      ),
+
+                      // ПОВТОРЕНИЯ
+                      _buildParameterCard(
+                        title: 'Повторения',
+                        value: '${progress.currentReps}',
+                        icon: Icons.repeat_one,
+                        onIncrement: progress.isCompleted ? null : () => _incrementReps(index),
+                        onDecrement: progress.isCompleted ? null : () => _decrementReps(index),
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // СТРОКА 2: ПРОГРЕСС И ДЕЙСТВИЯ
+                  Row(
+                    children: [
+                      // ПРОГРЕСС-БАР
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LinearProgressIndicator(
+                              value: progress.progressPercentage / 100,
+                              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                progress.isCompleted ? Colors.green : Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${progress.progressPercentage.toStringAsFixed(0)}%',
+                              style: const TextStyle(fontSize: 12, color:Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // КНОПКИ ДЕЙСТВИЙ
+                      if (!progress.isCompleted) ... [
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (_shouldShowTimer(exercise)) ...[
+                              // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
+                              IconButton(
+                                onPressed: progress.isCompleted
+                                    ? null
+                                    : () => _completeSet(index),
+                                icon: Icon(
+                                  Icons.check_circle,
+                                  color: progress.isCompleted ? Colors.grey: Colors.green,
+                                ),
                                 tooltip: 'Завершить подход',
                               ),
+
+                              // КНОПКА ТАЙМЕРА
+                              IconButton(
+                                icon: const Icon(Icons.timer, color: Colors.orange),
+                                onPressed: () => _startRestTimer(index),
+                                tooltip: 'Таймер',
+                              ),
+                                ] else ...[
+                                  IconButton(
+                                      onPressed: progress.isCompleted
+                                      ? null
+                                      : () => _completeSet(index),
+                                      icon: Icon(
+                                        Icons.check_circle,
+                                        color: progress.isCompleted ? Colors.grey : Colors.green,
+                                      ),
+                                    tooltip: 'Завершить подход',
+                                  ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ],
             ),
           ),
+        ), 
+            // БОЛЬШАЯ ПОЛУПРОЗРАЧНАЯ ГАЛОЧКА ПОВЕРХ ЗАВЕРШЁННОЙ КАРТОЧКИ
+            if (progress.isCompleted)
+              Positioned.fill(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.check_circle_outline,
+                      size: 260,
+                      color: Colors.green.withOpacity(0.3),
+                    ),
+                  ),
+                ),
+              )
+          ],
         );
       },
     );
@@ -412,7 +439,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       bool isInCircle,
       bool isCurrentCircle,
       Color? circleColor,
+      bool isCompleted,
       ){
+    if (isCompleted) {
+      return Colors.green.withOpacity(0.08);
+    }
     if (isCurrent){
       return Theme.of(context).colorScheme.primary.withOpacity(0.15);
     }
@@ -427,7 +458,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       bool isInCircle,
       bool isCurrentCircle,
       Color? circleColor,
+      bool isCompleted,
       ){
+    if (isCompleted) return Colors.green.withOpacity(0.3);
     if (isCurrent){
       return Colors.blue;
     } else if (isInCircle && isCurrentCircle){
