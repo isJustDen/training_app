@@ -105,6 +105,7 @@ class _TimerWidgetState extends State<TimerWidget>{
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
         border: Border.all(color: Colors.blue.shade200),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Row(
         children: [
@@ -115,7 +116,7 @@ class _TimerWidgetState extends State<TimerWidget>{
           // ТЕКСТ С ОСТАВШИМСЯ ВРЕМЕНЕМ
           Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                       'Отдых',
@@ -128,7 +129,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                   Text(
                     '$minutes:$seconds',
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: Colors.blue,
                     ),
@@ -148,7 +149,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                 //   );
                   widget.onSkip!();
                 },
-                icon: const Icon(Icons.stop, color: Colors.blue, size: 40,),
+                icon: const Icon(Icons.stop, color: Colors.blueGrey, size: 40,),
                 tooltip: 'Пропустить отдых',
             ),
         ],
