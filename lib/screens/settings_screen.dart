@@ -97,6 +97,15 @@ class _SettingsScreenState extends State<SettingsScreen>{
               onTap: _showClearDataDialog,
             ),
           ),
+          // РАЗДЕЛ: О ПРИЛОЖЕНИИ
+          _buildSectionHeader('О приложении'),
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.person_pin_circle_sharp, color:Theme.of(context).colorScheme.primary),
+              title: const Text('Cделано при самостоятельном энтузиазме Denis S. (Andromeda)'),
+              subtitle: const Text('Предложения и жалобы прнимаются по адресу "Какой-то адрес.ru".\nВсех благ!'),
+            ),
+          ),
         ],
       ),
     );

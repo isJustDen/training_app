@@ -16,7 +16,7 @@
         tools:ignore="ExactAlarm" />
 
     <application
-        android:label="training_app"
+        android:label="Дневничёк"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
