@@ -281,7 +281,6 @@ class StorageService {
 
     try{
       final List<dynamic> data = jsonDecode(historyJson);
-    print('Сохраненная тренировка: ${data}');
       return data.map((item) => WorkoutHistory.fromMap(item)).toList();
     } catch (e) {
       debugPrint('Ошибка загрузки истории ${e}');

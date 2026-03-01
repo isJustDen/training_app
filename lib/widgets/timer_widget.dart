@@ -103,13 +103,13 @@ class _TimerWidgetState extends State<TimerWidget>{
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        border: Border.all(color: Colors.orange.shade200),
+        color: Colors.blue.shade50,
+        border: Border.all(color: Colors.blue.shade200),
       ),
       child: Row(
         children: [
           // ИКОНКА ТАЙМЕРА
-          const Icon(Icons.timer, color: Colors.orange),
+          const Icon(Icons.timer, color: Colors.blue),
           const SizedBox(width: 12),
 
           // ТЕКСТ С ОСТАВШИМСЯ ВРЕМЕНЕМ
@@ -121,7 +121,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                       'Отдых',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+                        color: Colors.blue,
                         fontSize: 25,
                       ),
                   ),
@@ -130,7 +130,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.orange,
+                      color: Colors.blue,
                     ),
                   ),
                   const SizedBox(height: 4,),
@@ -148,7 +148,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                 //   );
                   widget.onSkip!();
                 },
-                icon: const Icon(Icons.stop, color: Colors.deepOrange, size: 40,),
+                icon: const Icon(Icons.stop, color: Colors.blue, size: 40,),
                 tooltip: 'Пропустить отдых',
             ),
         ],

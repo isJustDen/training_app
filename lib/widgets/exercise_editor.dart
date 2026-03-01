@@ -30,7 +30,7 @@ class ExerciseEditor extends StatelessWidget{
     weightController = TextEditingController(text:exercise.weight.toString()),
     setsController = TextEditingController(text:exercise.sets.toString()),
     repsController = TextEditingController(text:exercise.reps.toString()),
-    restController = TextEditingController(text:(exercise.restTime ~/ 60).toString());
+    restController = TextEditingController(text:exercise.restTime.toString());
 
   @override
 
@@ -104,7 +104,7 @@ class ExerciseEditor extends StatelessWidget{
                   child: TextField(
                     controller: restController,
                     decoration: const InputDecoration(
-                      labelText: 'Отдых(мин)',
+                      labelText: 'Отдых(сек)',
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
@@ -143,7 +143,7 @@ class ExerciseEditor extends StatelessWidget{
     final weight = double.tryParse(weightController.text) ?? 0.0;
     final sets = int.tryParse(setsController.text) ?? 3;
     final reps = int.tryParse(repsController.text) ?? 8;
-    final restMinutes = int.tryParse(restController.text) ?? 1;
+    final restSeconds = int.tryParse(restController.text) ?? 60;
 
     // ПРОВЕРКА НА ПОЛОЖИТЕЛЬНЫЕ ЗНАЧЕНИЯ
     if (weight < 0){
@@ -165,7 +165,7 @@ class ExerciseEditor extends StatelessWidget{
       weight: weight,
       sets: sets,
       reps: reps,
-      restTime: restMinutes * 60,
+      restTime: restSeconds,
     );
 
     // ВЫЗЫВАЕМ КОЛБЭК

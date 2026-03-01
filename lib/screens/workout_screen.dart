@@ -362,6 +362,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
+                          if (_shouldShowTimer(exercise)) ...[
                           // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
                           IconButton(
                             onPressed: progress.isCompleted
@@ -380,6 +381,18 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                             onPressed: () => _startRestTimer(index),
                             tooltip: 'Таймер',
                           ),
+                            ] else ...[
+                              IconButton(
+                                  onPressed: progress.isCompleted
+                                  ? null
+                                  : () => _completeSet(index),
+                                  icon: Icon(
+                                    Icons.check_circle,
+                                    color: progress.isCompleted ? Colors.grey : Colors.green,
+                                  ),
+                                tooltip: 'Завершить подход',
+                              ),
+                          ],
                         ],
                       ),
                     ),
@@ -787,6 +800,21 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     );
   }
 
+  // ОПРЕДЕЛЯЕТ, НУЖНО ЛИ ПОКАЗЫВАТЬ ТАЙМЕР ДЛЯ ЭТОГО УПРАЖНЕНИЯ
+  bool _shouldShowTimer(Exercise exercise) {
+    if (!exercise.isInAnyCircle) return true; // Обычное упражнение — таймер всегда показываем
+
+    // Упражнение в круге — показываем таймер только последнему
+    final circleExercises = widget.template.exercises
+      .where((e) => e.circleNumber == exercise.circleNumber)
+      .toList()
+    ..sort((a, b) => a.circleOrder.compareTo(b.circleOrder));
+
+    // Последнее = максимальный circleOrder в этом круге
+    return circleExercises.isNotEmpty &&
+      circleExercises.last.id == exercise.id;
+  }
+
 // ========== МЕТОДЫ ДЛЯ РАБОТЫ С ДАННЫМИ ==========
 
   // ОБНОВЛЕНИЕ ВЕСА УПРАЖНЕНИЯ
@@ -850,82 +878,164 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       progress.addCompletedSet(progress.currentReps, progress.currentWeight);
     });
 
+    // ПРОВЕРЯЕМ — это последний подход в круге?
+    final exercise = progress.exercise;
+    final isLastSet = progress.completedSetsCount >= exercise.sets;
+
+    if (isLastSet && exercise.isInAnyCircle) {
+      final allCircleExercisesCompleted = _exercisesProgress
+          .where((p) => p.exercise.circleNumber == exercise.circleNumber)
+          .every((p) => p.isCompleted);
+
+      if (allCircleExercisesCompleted) {
+        _showCircleRestTimer (exercise.circleNumber);
+        return;
+      }
+    }
     // предложение отдыха после завершения подхода
-    _showRestPrompt(index);
+    if (progress.remainingSets > 0) {
+      _startRestTimer(index);
+    }
   }
 
   // ПОКАЗАТЬ ПРЕДЛОЖЕНИЕ ОБ ОТДЫХЕ
-  void _showRestPrompt(int index){
-    final exercise = _exercisesProgress[index].exercise;
+  void _showCircleRestTimer (int circleNumber){
+    int selectedTime = 60;
 
-    // ЕСЛИ ЕЩЕ ЕСТЬ НЕВЫПОЛНЕННЫЕ ПОДХОДЫ
-    if (_exercisesProgress[index].remainingSets > 0){
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Отдых'),
-          content: Text(
-              'Выполнен подход ${_exercisesProgress[index].completedSetsCount}/${exercise.sets}\n'
-                  'Хотите запустить таймер отдыха?'
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Пропустить'),
-            ),
-            ElevatedButton(
-              onPressed: (){
-                Navigator.pop(context);
-                _startRestTimer(index);
-              },
-              child: const Text('Запустить таймер'),
-            ),
-          ],
-        ),
-      );
-    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context){
+        return StatefulBuilder(
+            builder: (context, setState){
+              final minutes = selectedTime ~/ 60;
+              final seconds = selectedTime % 60;
+              final label = minutes > 0
+                  ? '${minutes}м ${seconds > 0 ? "${seconds} с": ""}'
+                  : '${seconds}с';
+
+              return AlertDialog(
+                title: Row(
+                  children: [
+                    Icon(
+                        CircleUtils.getCircleIcon(circleNumber),
+                            color: CircleUtils.getCircleColor(circleNumber),
+                    ),
+                    const SizedBox(width: 8,),
+                    Text('Круг $circleNumber завершён'),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Все упражнения круга выполнены. \nВремя отдыха:',
+                    textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: CircleUtils.getCircleColor(circleNumber),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Slider(
+                      value: selectedTime.toDouble(),
+                      min: 10,
+                      max: 300,
+                      divisions: 29,
+                      label:label,
+                      activeColor: Colors.blue,
+                      onChanged: (value){
+                        setState(() {
+                          selectedTime = (value/10).round()*10;
+                          print('Значение состояние таймера: ${selectedTime}');
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Пропустить'),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CircleUtils.getCircleColor(circleNumber),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _startTimer(selectedTime);
+                    },
+                    child: const Text('Запустить'),
+                  ),
+                ],
+              );
+            }
+        );
+      },
+    );
   }
 
   // ЗАПУСК ТАЙМЕРА ОТДЫХА
   void _startRestTimer(int index){
     final exercise = _exercisesProgress[index].exercise;
 
+    int selectedTime = exercise.restTime.clamp(10, 300); // Дефолт = restTime из упражнения, но минимум 10 секунд
+    selectedTime = (selectedTime/10).round() * 10;  // Округляем до кратного 10
+
     // ПОКАЗЫВАЕМ ДИАЛОГ ДЛЯ ВЫБОРА ВРЕМЕНИ
     showDialog(
       context: context,
       builder: (context) {
-
-        int selectedTime = exercise.restTime ~/ 60;
-
         return StatefulBuilder(
           builder: (context, setState){
+            final minutes = selectedTime ~/ 60;
+            final seconds = selectedTime % 60;
+            final label = minutes > 0
+                ? '${minutes}min : ${seconds}sec'
+                : '${seconds}sec';
+
             return AlertDialog(
               title: const Text('Таймер отдыха'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Выберите время отдыха'),
+                   Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // ВЫБОР ВРЕМЕНИ С ПОМОЩЬЮ SLIDER
                   Slider(
                     value: selectedTime.toDouble(),
-                    min: 1,
-                    max: 5,
-                    divisions: 18,
-                    label:'$selectedTime мин',
+                    min: 10,
+                    max: 300,
+                    divisions: 29,
+                    label:label,
+                    activeColor: Colors.blue,
                     onChanged: (value){
                       setState(() {
-                        selectedTime = value.round();
+                        selectedTime = (value/10).round()*10;
                       });
                     },
                   ),
 
                   Text(
-                    '$selectedTime минут',
-                    style: const TextStyle(
-                      fontSize: 18,
+                    'Шаг: 10 секунд',
+                    style: TextStyle(
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -936,9 +1046,13 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   child: const Text('Отмена'),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: () {
                     Navigator.pop(context);
-                    _startTimer(selectedTime * 60);
+                    _startTimer(selectedTime);
                   },
                   child: const Text('Запустить'),
                 ),
@@ -951,7 +1065,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   // ЗАПУСК ТАЙМЕРА
-
   void _startTimer(int seconds){
     setState(() {
       _restTimeRemaining = seconds;
