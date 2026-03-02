@@ -103,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
             child: ListTile(
               leading: Icon(Icons.person_pin_circle_sharp, color:Theme.of(context).colorScheme.primary),
               title: const Text('Cделано при самостоятельном энтузиазме Denis S. (Andromeda)'),
-              subtitle: const Text('Предложения и жалобы прнимаются по адресу "Какой-то адрес.ru".\nВсех благ!'),
+              subtitle: const Text('Предложения и жалобы прнимаются по адресу den.work.zav@gmail.com.\nВсех благ!\nVersioN: 1.0.0'),
             ),
           ),
         ],

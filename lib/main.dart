@@ -1,4 +1,6 @@
 // main.dart
+import 'package:fitflow/screens/splash_screen.dart';
+import 'package:fitflow/services/storage_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/notification_service.dart';
@@ -6,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'screens/templates_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/settings_provider.dart';
-
 
 // ГЛАВНАЯ ФУНКЦИЯ
 void main() async{
@@ -56,7 +57,12 @@ class WorkoutApp extends StatelessWidget {
       themeMode: settingsProvider.settings.isDarkMode
         ? ThemeMode.dark
         : ThemeMode.light,
-      home: const TemplatesScreen(),
+      home: SplashScreen(
+          onInit: () async {
+          await StorageService.loadTemplates();
+          },
+          nextScreen: const TemplatesScreen(),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
