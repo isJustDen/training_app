@@ -421,7 +421,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   child: Center(
                     child: Icon(
                       Icons.check_circle_outline_sharp,
-                      size: 220,
+                      size: 150,
                       color: Colors.green.withOpacity(0.3),
                     ),
                   ),
@@ -769,7 +769,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 child: Text(
                   '${setIndex + 1}:  ${reps}×${weight.toStringAsFixed(1)} кг',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: isAbovePlan
                         ? Colors.green
@@ -802,11 +802,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
               const SizedBox(width: 8),
 
-              // ИЗМЕНЕНИЕ ПОВТОРЕНИЙ
-              if (repsDiff > 0)
-                _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
-              else if (repsDiff < 0)
-                _buildChangeIndicator('${repsDiff} повт', Theme.of(context).colorScheme.error),
+              // // ИЗМЕНЕНИЕ ПОВТОРЕНИЙ
+              // if (repsDiff > 0)
+              //   _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
+              // else if (repsDiff < 0)
+              //   _buildChangeIndicator('${repsDiff} повт', Theme.of(context).colorScheme.error),
             ],
           ),
       ],
