@@ -1,6 +1,7 @@
 //screens/workout_screen.dart
 
 import 'package:fitflow/models/workout_circle.dart';
+import 'package:fitflow/screens/workout_complete_screen.dart';
 import 'package:fitflow/utils/circle_utils.dart';
 
 import 'package:flutter/material.dart';
@@ -185,7 +186,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           const SizedBox(height: 16),
 
           Text(
-            'В этой тренировке нет урпажнений',
+            'В этой тренировке нет упражнений',
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -899,7 +900,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     if (progress.currentReps == 0){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Укажите количетво повторений для ${progress.exercise.name}'),
+          content: Text('Укажите количество повторений для ${progress.exercise.name}'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -1137,7 +1138,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
 
-    final isTooShort = duration.inMinutes < 5;
+    final isTooShort = duration.inMinutes < 15;
 
     showDialog(
       context: context,
@@ -1164,7 +1165,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                     SizedBox(width: 8,),
                     Expanded(
                       child: Text(
-                        'Тренировка короче 5 минут не учитываются в статистике времени.',
+                        'Тренировка короче 15 минут не учитываются в статистике времени.',
                         style: TextStyle(fontSize: 13, color: Colors.orange),
                       ),
                     ),
@@ -1235,7 +1236,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   SnackBar(
                     content: Text(
                         isTooShort
-                            ? 'Сохранено без учёта времени ( меньше 5 минут)'
+                            ? 'Сохранено без учёта времени ( меньше 15 минут)'
                             : 'Тренировка сохранена в историю'
                     ),
                     backgroundColor: isTooShort ? Colors.orange : Colors.green,
@@ -1260,8 +1261,26 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 await _showSaveWeightsDialog(weightChanged);
               }
               if (mounted) {
-                Navigator.of(context, rootNavigator: false).popUntil(
-                      (route) => route.isFirst,
+                // Считаем статистику
+                int totalSets = 0;
+                double totalVolume = 0;
+                for (var p in _exercisesProgress) {
+                  totalSets += p.completedSets.length;
+                  for (var set in p.completedSets) {
+                    totalVolume += (set.completedReps * set.weight);
+                  }
+                }
+
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                        builder: (_) => WorkoutCompleteScreen(
+                          templateName: widget.template.name,
+                          durationSeconds: duration.inSeconds,
+                          totalSets: totalSets,
+                          totalExercise: _exercisesProgress.length,
+                          totalVolume: totalVolume,
+                        ),
+                    ),
                 );
               };
             },
