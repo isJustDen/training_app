@@ -162,6 +162,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   Widget _buildBody(){
     return Column(
       children: [
+        // ПРОГРЕСС ТРЕНИРОВКИ
+        _buildWorkoutProgressBar(),
+
         // ТАЙМЕР ОТДЫХА (если активен)
         if (_isResting)
           TimerWidget(
@@ -852,6 +855,82 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     // Последнее = максимальный circleOrder в этом круге
     return circleExercises.isNotEmpty &&
       circleExercises.last.id == exercise.id;
+  }
+
+  //СТАТУС БАР ВЫПОЛНЕННЫХ УПРАЖНЕНИЙ
+  Widget _buildWorkoutProgressBar() {
+    if (_exercisesProgress.isEmpty) return const SizedBox.shrink();
+
+    // СЧИТАЕМ ПРОГРЕСС ПО ПОДХОДАМ (более гранулярно)
+    final completedSets = _exercisesProgress.fold(0, (sum, p) => sum + p.completedSetsCount);
+    final totalSets = _exercisesProgress.fold(0, (sum, p) => sum + p.exercise.sets);
+    final setsPercent = totalSets > 0 ? completedSets / totalSets : 0.0;
+
+    final percentLabel = '${(setsPercent * 100).toStringAsFixed(0)}%';
+
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
+        children: [
+          Icon(setsPercent == 1.0? Icons.check_circle : Icons.fitness_center,
+          size: 14,
+            color: setsPercent == 1.0
+                ? Colors.green
+                :Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+
+          const SizedBox(width: 8,),
+
+          // ПРОГРЕСС БАР
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: setsPercent,
+                minHeight: 6,
+                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  setsPercent < 0.33
+                      ? Colors.blue
+                      : setsPercent < 0.66
+                        ?Colors.orange
+                        :setsPercent == 1.0
+                          ?Colors.green
+                          : Colors.deepOrange,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8,),
+
+          // ПРОЦЕНТ
+          SizedBox(
+            width: 36,
+            child: Text(
+              percentLabel,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: setsPercent == 1.0
+                    ? Colors.green
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+
+          // СЧЁТЧИК ПОДХОДОВ
+          Text('($completedSets/$totalSets)',
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
 // ========== МЕТОДЫ ДЛЯ РАБОТЫ С ДАННЫМИ ==========
