@@ -1,6 +1,7 @@
 //services/storage_service.dart
 
 import 'dart:convert';
+import 'package:fitflow/models/workout_session.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exercise.dart';
@@ -13,6 +14,8 @@ class StorageService {
   static const String _templatesKey = 'workout_templates';
 
   static const String _historyKey = 'workout_history';
+
+  static const String _sessionKey = 'active_workout_session'; // КЛЮЧ для хранения активной сессии
 
   // МЕТОД ДЛЯ ПОЛУЧЕНИЯ ЭКЗЕМПЛЯРА SharedPreferences
   static Future <SharedPreferences> get _prefs async {
@@ -77,7 +80,7 @@ class StorageService {
     return [
       WorkoutTemplate(
           id: '1',
-          name: 'Понедельник FullBody. Акцент: грудь',
+          name: 'FB. Акцент: грудь',
           dayOfWeek: 'Понедельник',
           exercises: [
             Exercise(
@@ -86,6 +89,15 @@ class StorageService {
               weight: 20,
               sets: 3,
               reps: 8,
+              restTime: 120,
+            ),
+            Exercise(
+              id: '101',
+              name: 'Жим тренажёра сидя',
+              weight: 15,
+              sets: 3,
+              reps: 10,
+              restTime: 120,
             ),
             Exercise(
               id: '2',
@@ -93,6 +105,7 @@ class StorageService {
               weight: 10,
               sets: 3,
               reps: 8,
+              restTime: 120,
             ),
             Exercise(
               id: '3',
@@ -100,6 +113,7 @@ class StorageService {
               weight: 22.5,
               sets: 3,
               reps: 8,
+              restTime: 120,
             ),
             Exercise(
               id: '4',
@@ -107,6 +121,7 @@ class StorageService {
               weight: 10,
               sets: 3,
               reps: 12,
+              restTime: 60,
             ),
             Exercise(
               id: '5',
@@ -114,6 +129,7 @@ class StorageService {
               weight: 15,
               sets: 3,
               reps: 8,
+              restTime: 60,
             ),
             Exercise(
               id: '6',
@@ -121,6 +137,7 @@ class StorageService {
               weight: 0,
               sets: 3,
               reps: 10,
+              restTime: 60,
             ),
             Exercise(
               id: '7',
@@ -128,6 +145,7 @@ class StorageService {
               weight: 25,
               sets: 3,
               reps: 8,
+              restTime: 60,
             ),
           ],
           createdAt: now,
@@ -136,7 +154,7 @@ class StorageService {
 
       WorkoutTemplate(
         id: '2',
-        name: 'Среда FullBody. Акцент: спина',
+        name: 'FB. Акцент: спина',
         dayOfWeek: 'Среда',
         exercises: [
           Exercise(
@@ -145,13 +163,15 @@ class StorageService {
             weight: 0,
             sets: 3,
             reps: 8,
+            restTime: 60,
           ),
           Exercise(
             id: '9',
-            name: 'Тяга грифа 1 к поясу',
+            name: 'Тяга тренажёра к поясу',
             weight: 40,
             sets: 3,
             reps: 8,
+            restTime: 120,
           ),
           Exercise(
             id: '10',
@@ -159,6 +179,7 @@ class StorageService {
             weight: 0,
             sets: 3,
             reps: 8,
+            restTime: 120,
           ),
           Exercise(
             id: '11',
@@ -166,6 +187,7 @@ class StorageService {
             weight: 25,
             sets: 3,
             reps: 12,
+            restTime: 120,
           ),
           Exercise(
             id: '12',
@@ -173,6 +195,7 @@ class StorageService {
             weight: 10,
             sets: 3,
             reps: 8,
+            restTime: 60,
           ),
           Exercise(
             id: '13',
@@ -180,6 +203,15 @@ class StorageService {
             weight: 15,
             sets: 3,
             reps: 10,
+            restTime: 60,
+          ),
+          Exercise(
+            id: '100',
+            name: 'Трицепс (прямая)',
+            weight: 15,
+            sets: 3,
+            reps: 10,
+            restTime: 60,
           ),
           Exercise(
             id: '14',
@@ -187,6 +219,7 @@ class StorageService {
             weight: 0,
             sets: 3,
             reps: 8,
+            restTime: 60,
           ),
         ],
         createdAt: now,
@@ -195,7 +228,7 @@ class StorageService {
 
       WorkoutTemplate(
         id: '3',
-        name: 'Пятница FullBody. Акцент: ноги+плечи',
+        name: 'FB. Акцент: ноги+плечи',
         dayOfWeek: 'Пятница',
         exercises: [
           Exercise(
@@ -204,13 +237,15 @@ class StorageService {
             weight: 40,
             sets: 3,
             reps: 8,
+            restTime: 120,
           ),
           Exercise(
             id: '16',
-            name: 'Жим тренажёра',
+            name: 'Жим ногами лёжа',
             weight: 30,
             sets: 3,
             reps: 8,
+            restTime: 120,
           ),
           Exercise(
             id: '17',
@@ -218,6 +253,7 @@ class StorageService {
             weight: 10,
             sets: 3,
             reps: 8,
+            restTime: 60,
           ),
           Exercise(
             id: '18',
@@ -225,6 +261,7 @@ class StorageService {
             weight: 10,
             sets: 3,
             reps: 12,
+            restTime: 60,
           ),
           Exercise(
             id: '19',
@@ -232,6 +269,7 @@ class StorageService {
             weight: 20,
             sets: 3,
             reps: 8,
+            restTime: 60,
           ),
           Exercise(
             id: '20',
@@ -239,6 +277,15 @@ class StorageService {
             weight: 50,
             sets: 3,
             reps: 10,
+            restTime: 60,
+          ),
+          Exercise(
+            id: '102',
+            name: 'Икры',
+            weight: 50,
+            sets: 3,
+            reps: 10,
+            restTime: 60,
           ),
           Exercise(
             id: '21',
@@ -246,6 +293,7 @@ class StorageService {
             weight: 0,
             sets: 3,
             reps: 10,
+            restTime: 60,
           ),
         ],
         createdAt: now,
@@ -351,4 +399,31 @@ class StorageService {
     await saveTemplates(updatedTemplates);
     print('Веса обновленыв шаблоне');
   }
+//------------------------------СОСТОЯНИЕ ТЕКУЩЕЙ СЕССИИ--------------------------------------------//
+  // СОХРАНИТЬ текущую сессию
+  static Future<void> saveWorkoutSession(WorkoutSession session) async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = jsonEncode(session.toMap());
+    await prefs.setString(_sessionKey, json);
+  }
+
+  // ЗАГРУЗИТЬ сохранённую сессию (null если нет)
+  static Future<WorkoutSession?> loadWorkoutSession(String templateId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(_sessionKey);
+    if (json == null) return null;
+
+    final session = WorkoutSession.fromMap(jsonDecode(json));
+
+    // Возвращаем только если сессия принадлежит этому шаблону
+    if (session.templateId != templateId) return null;
+    return session;
+  }
+
+  // УДАЛИТЬ сессию (после завершения или отказа от восстановления)
+  static Future<void> clearWorkoutSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_sessionKey);
+  }
+
 }

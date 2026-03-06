@@ -1,6 +1,7 @@
 //screens/workout_screen.dart
 
 import 'package:fitflow/models/workout_circle.dart';
+import 'package:fitflow/models/workout_session.dart';
 import 'package:fitflow/screens/workout_complete_screen.dart';
 import 'package:fitflow/utils/circle_utils.dart';
 
@@ -80,7 +81,13 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
     // ЗАГРУЖАЕМ ИСТОРИЧЕСКИЕ ДАННЫЕ ДЛЯ КАЖДОГО УПРАЖНЕНИЯ
     await _loadExerciseHistory();
-    print('Тренировка начата: ${widget.template.name}');
+
+    // ПРОВЕРЯЕМ — есть ли сохранённая сессия для этого шаблона
+    final savedSession = await StorageService.loadWorkoutSession(widget.template.id );
+
+    if (savedSession != null && savedSession.hasProgress && mounted) {
+      _showRestoreSessionDialog(savedSession);
+    }
   }
 
   //МЕТОД ДЛЯ ЗАГРУЗКИ ИСТОРИИ
@@ -108,11 +115,14 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   @override
   Widget build(BuildContext context){
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
       appBar: _buildAppBar(),
       body: _buildBody(),
       bottomNavigationBar: _buildBottomBar(),
-    );
+        ),
+      );
   }
 
   // ВЕРХНЯЯ ПАНЕЛЬ (AppBar)
@@ -803,11 +813,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
               const SizedBox(width: 8),
 
-              // // ИЗМЕНЕНИЕ ПОВТОРЕНИЙ
-              // if (repsDiff > 0)
-              //   _buildChangeIndicator('+ ${repsDiff}повт', Colors.green)
-              // else if (repsDiff < 0)
-              //   _buildChangeIndicator('${repsDiff} повт', Theme.of(context).colorScheme.error),
             ],
           ),
       ],
@@ -863,12 +868,13 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   // ПЕРЕГРУЗКА МЕТОДА ДЛЯ ПРИНЯТИЯ double
-  void _updateWeightDirect(int index, double weight){
+  Future <void> _updateWeightDirect(int index, double weight) async {
     setState(() {
       _exercisesProgress[index] = _exercisesProgress[index].copyWith(
         currentWeight: weight,
       );
     });
+    await _saveSession();
   }
 
   // УВЕЛИЧЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
@@ -894,7 +900,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   // ЗАВЕРШЕНИЕ ПОДХОДА
-  void _completeSet(int index) {
+  Future <void> _completeSet(int index) async {
     final progress = _exercisesProgress[index];
 
     if (progress.currentReps == 0){
@@ -911,6 +917,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       // Добавляем подход с фактическими повторениями
       progress.addCompletedSet(progress.currentReps, progress.currentWeight);
     });
+    await _saveSession();
 
     // ПРОВЕРЯЕМ — это последний подход в круге?
     final exercise = progress.exercise;
@@ -1186,6 +1193,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
+              await StorageService.clearWorkoutSession();
               // 1. СОБИРАЕМ ДАННЫЕ
               List<Exercise> completedExercises = [];
               // ПРОХОДИМ ПО ВСЕМ УПРАЖНЕНИЯМ И СОБИРАЕМ ДАННЫЕ
@@ -1411,6 +1419,67 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     return 'упражнениях';
   }
 
+  // СОХРАНЯЕМ ТЕКУЩИЙ ПРОГРЕСС В СЕССИЮ
+  Future<void> _saveSession() async {
+    // Собираем completedSets для каждого упражнения
+    final completedSets = <String, List<Map<String, dynamic>>>{};
+    final currentWeights = <String, double> {};
+
+    for (var progress in _exercisesProgress) {
+      final id = progress.exercise.id.toString();
+
+      completedSets[id] = progress.completedSets.map((set) => {
+        'reps': set.completedReps,
+        'weight': set.weight,
+        'setNumber': set.setNumber,
+      }).toList();
+
+      currentWeights[id] = progress.currentWeight;
+    }
+
+    await StorageService.saveWorkoutSession(WorkoutSession(
+        templateId: widget.template.id,
+        startedAt: _workoutStartTime,
+        completedSets: completedSets,
+        currentWeights: currentWeights));
+  }
+
+  // ОБРАБОТЧИК НАЖАТИЯ "НАЗАД"
+  Future<bool> _onWillPop() async {
+    // Проверяем — был ли реальный прогресс
+    final hasProgress = _exercisesProgress.any((p) => p.completedSets.isNotEmpty);
+
+    if (!hasProgress) return true;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange,),
+            SizedBox(width: 8,),
+            Text('Выйти из тренировки?'),
+          ],
+        ),
+        content:  const Text(
+          'Прогресс сохранён. При следующем входе вы сможетепродолжить с того же места'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Остаться'),
+          ),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
   // РЕДАКТИРОВАНИЕ ВЕСА ЧЕРЕЗ ДИАЛОГ
   void _showWeightEditor(int index){
     final progress = _exercisesProgress[index];
@@ -1505,4 +1574,115 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       }
     });
   }
+
+  //ДИАЛОГ ВОССТАНОВЛЕНИЯ СЕССИИ
+  void _showRestoreSessionDialog(WorkoutSession session) {
+    // Считаем сколько подходов было сделано
+    final totalSets = session.completedSets.values
+        .fold(0, (sum, sets) => sum + sets.length);
+
+    // Сколько времени прошло
+    final elapsed = DateTime.now().difference(session.startedAt);
+    final hoursAgo = elapsed.inHours;
+    final minutesAgo = elapsed.inMinutes%60;
+    final timeLabel = hoursAgo > 0
+        ? '${hoursAgo}ч ${minutesAgo}мин назад'
+        : '${elapsed.inMinutes}мин назад';
+
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.restore, color: Colors.blue),
+              SizedBox(width: 8,),
+              Text('Незавершенная тренировка'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text('Найдена сессия от $timeLabel'),
+              const SizedBox(height: 8,),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.fitness_center, color: Colors.blue, size: 16,),
+                    const SizedBox(width: 8,),
+                    Text(
+                      'Выполнено подходов:$totalSets',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12,),
+              const Text(
+                'Восстановить прогресс?',
+                style:  TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
+          actions: [
+            // НАЧАТЬ ЗАНОВО
+            TextButton(
+                onPressed: (){
+                  Navigator.pop(dialogContext);
+                  StorageService.clearWorkoutSession();
+                },
+                child: const Text('Начать заново'),
+            ),
+            // ВОССТАНОВИТЬ
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  _restoreSession(session);
+                },
+                child: const Text('Восстановить'),
+            ),
+          ],
+        ),
+    );
+  }
+
+  //ВОССТАНОВЛЕНИЕ СЕССИИ
+  void _restoreSession(WorkoutSession session){
+    // Восстанавливаем время начала из сессии
+    _workoutStartTime = session.startedAt;
+
+    setState(() {
+      for (int i = 0; i < _exercisesProgress.length; i++) {
+        final id = _exercisesProgress[i].exercise.id.toString();
+
+        // Восстанавливаем вес
+        if (session.currentWeights.containsKey(id)) {
+          _exercisesProgress[i] = _exercisesProgress[i].copyWith(
+            currentWeight: session.currentWeights[id]!,
+          );
+        }
+
+        // Восстанавливаем подходы
+        final savedSets = session.completedSets[id] ?? [];
+        for (var set in savedSets) {
+          _exercisesProgress[i].addCompletedSet(
+              set['reps'] as int,
+              (set['weight'] as num).toDouble(),
+          );
+        }
+      }
+    });
+  }
+
 }
