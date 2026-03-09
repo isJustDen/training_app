@@ -162,6 +162,7 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
   Widget _buildMeasurementCard(Measurement m, Map<String, double> changes){
     // Форматируем дату в формате ДД.ММ.ГГГГ
     final dateStr = '${m.date.day.toString().padLeft(2, '0')}.'
+        '${m.date.month.toString().padLeft(2, '0')}.'
         '${m.date.year}';
 
     return Card(
