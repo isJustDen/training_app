@@ -1343,31 +1343,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               }
               // ЕСЛИ ЕСТЬ ИЗМЕНЕНИЯ — предлагаем сохранить в шаблон
               if (weightChanged.isNotEmpty && mounted) {
-                await _showSaveWeightsDialog(weightChanged);
+                await _showSaveWeightsDialog(weightChanged, duration);
+              } else {
+                _navigateToComplete(duration);
               }
-              if (mounted) {
-                // Считаем статистику
-                int totalSets = 0;
-                double totalVolume = 0;
-                for (var p in _exercisesProgress) {
-                  totalSets += p.completedSets.length;
-                  for (var set in p.completedSets) {
-                    totalVolume += (set.completedReps * set.weight);
-                  }
-                }
-
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                        builder: (_) => WorkoutCompleteScreen(
-                          templateName: widget.template.name,
-                          durationSeconds: duration.inSeconds,
-                          totalSets: totalSets,
-                          totalExercise: _exercisesProgress.length,
-                          totalVolume: totalVolume,
-                        ),
-                    ),
-                );
-              };
             },
             child: const Text('Завершить и сохранить'),
           ),
@@ -1377,7 +1356,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   // ДИАЛОГ ПРЕДЛОЖЕНИЯ СОХРАНЕНИЯ ИЗМЕНЕНИЙ ВЕСА
-  Future <void> _showSaveWeightsDialog(Map<String, double> weightChanged) {
+  Future <void> _showSaveWeightsDialog(Map<String, double> weightChanged, Duration duration) {
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -1458,7 +1437,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         actions: [
           // НЕ СОХРАНЯТЬ
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              _navigateToComplete(duration);
+              },
             child: const Text('Не сохранять'),
           ),
 
@@ -1474,11 +1456,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Веса обновлены в шаблоне "${widget.template.name}"',
-                    ),
+                      'Веса обновлены в шаблоне "${widget.template.name}"'),
                     backgroundColor: Colors.green,
                   ),
                 );
+                _navigateToComplete(duration);
               }
             },
             child: const Text('Сохранить'),
@@ -1760,6 +1742,32 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         }
       }
     });
+  }
+
+// ВСПОМОГАТЕЛЬНЫЙ МЕТОД — НАВИГАЦИЯ НА ЭКРАН ЗАВЕРШЕНИЯ
+  void _navigateToComplete (Duration duration) {
+    if (!mounted) return;
+      // Считаем статистику
+      int totalSets = 0;
+      double totalVolume = 0;
+      for (var p in _exercisesProgress) {
+        totalSets += p.completedSets.length;
+        for (var set in p.completedSets) {
+          totalVolume += (set.completedReps * set.weight);
+        }
+      }
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => WorkoutCompleteScreen(
+            templateName: widget.template.name,
+            durationSeconds: duration.inSeconds,
+            totalSets: totalSets,
+            totalExercise: _exercisesProgress.length,
+            totalVolume: totalVolume,
+          ),
+        ),
+      );
   }
 
 }
