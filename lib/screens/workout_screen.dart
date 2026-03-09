@@ -1234,8 +1234,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text('Продолжительность: ${minutes}: ${seconds.toString().padLeft(2, '0')}\n'
-            ),
             if (isTooShort) ... [
               const SizedBox(height: 12),
               Container(

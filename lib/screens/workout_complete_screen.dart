@@ -340,6 +340,8 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
 
   //ЗАГОЛОВОК
   Widget _buildTitle() {
+    final minutes = widget.durationSeconds ~/ 60;
+    final seconds = widget.durationSeconds % 60;
     return AnimatedBuilder(
         animation: _heroController, // Появляется вместе с героем
         builder: (context, _) {
@@ -368,6 +370,15 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
                       letterSpacing: 1.0,
                     ),
                   ),
+                  const SizedBox(height: 12,),
+                    Text('Продолжительность тренировки: ${minutes}:${seconds.toString().padLeft(2, '0')}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.7),
+                        letterSpacing: 1.0,
+                      ),
+                    ),
                 ],
               ),
           );
