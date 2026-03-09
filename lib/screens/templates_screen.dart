@@ -1,5 +1,7 @@
 //lib/screens/templates_screen.dart
 
+import 'package:fitflow/screens/measurements_screen.dart';
+
 import '../models/exercise.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
@@ -93,6 +95,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
               icon: const Icon(Icons.refresh),
               tooltip: 'Обновить',
           ),
+          //Временная кнопка
+          ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MeasurementsScreen())), icon: Icon(Icons.straighten), label: const Text('Замеры'), )
         ],
       ),
       body: _buildContent(),
