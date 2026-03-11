@@ -16,6 +16,8 @@ class Exercise {
 
   List<Map<String, dynamic>> completedSets;
 
+  List <MuscleGroup> muscleGroups;
+
   // КОНСТРУКТОР
   Exercise({
     required this.id,
@@ -24,11 +26,11 @@ class Exercise {
     this.sets = 3,
     this.reps = 8,
     this.restTime = 60,
-    // НОВЫЕ ПАРАМЕТРЫ С ЗНАЧЕНИЯМИ ПО УМОЛЧАНИЮ:
     this.isInCircle = false,
     this.circleNumber = 0,
     this.circleOrder = 0,
     List<Map<String, dynamic>>? completedSets,
+    this.muscleGroups = const[],
   }) : completedSets = completedSets ?? [];
 
 // МЕТОД ДЛЯ КОПИРОВАНИЯ С ИЗМЕНЕНИЯМИ
@@ -43,6 +45,7 @@ class Exercise {
     int? circleNumber,
     int? circleOrder,
     List<Map<String, dynamic>>? completedSets,
+    List<MuscleGroup> ? muscleGroups,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -55,6 +58,7 @@ class Exercise {
       circleNumber: circleNumber ?? this.circleNumber,
       circleOrder: circleOrder ?? this.circleOrder,
       completedSets: completedSets ?? this.completedSets,
+      muscleGroups: muscleGroups ?? this.muscleGroups,
     );
   }
 
@@ -72,12 +76,26 @@ class Exercise {
       'circleOrder':circleOrder,
       'circleNumber':circleNumber,
       'completedSets': completedSets,
+      'muscleGroups': muscleGroups.map((g) => g.name).toList(),
       };
     }
 
 // ФАБРИЧНЫЙ КОНСТРУКТОР ДЛЯ СОЗДАНИЯ ИЗ MAP
 // factory - специальный конструктор, может возвращать кэшированные экземпляры
   factory Exercise.fromMap(Map<String, dynamic> map){
+    // ОБРАТНАЯ СОВМЕСТИМОСТЬ — если поля нет в старых данных, берём пустой список
+    List<MuscleGroup> groups = [];
+    if (map['muscleGroups'] != null) {
+      for (final name in (map['muscleGroups'] as List)) {
+        try {
+          // byName кидает исключение если такого значения нет — ловим его
+          groups.add(MuscleGroup.values.byName(name.toString()));
+        } catch (_){
+
+        }
+      }
+    }
+
     return Exercise(
       id: map['id'],
       name: map['name'],
@@ -91,6 +109,7 @@ class Exercise {
       completedSets: List<Map<String, dynamic>>.from(
           (map['completedSets']as List?)?.map((s)=> Map<String,dynamic>.from(s)) ?? [],
       ),
+      muscleGroups: groups,
     );
   }
 
@@ -98,16 +117,75 @@ class Exercise {
   bool get isInAnyCircle => circleNumber > 0;
 
   // НОВЫЙ МЕТОД: ПОЛУЧИТЬ ИНФОРМАЦИЮ О КРУГЕ В ВИДЕ СТРОКИ
-  String get circleInfo {
-    if (!isInAnyCircle) return 'Не в круге';
-    return 'Круг $circleNumber ($circleOrder)';
-  }
+  String get circleInfo => isInAnyCircle ? 'Не в круге':'Круг $circleNumber ($circleOrder)';
 
   // ПЕРЕОПРЕДЕЛЕНИЕ toString() ДЛЯ ОТЛАДКИ
   @override
-  String toString(){
-    return 'Exercise(id: $id, name: $name, '
-        'weight $weight, sets: $sets, reps: '
-        '$reps, circle:${circleNumber>0? "Круг $circleNumber" : "Нет"})';
+  String toString() => 'Exercise(id: $id, name: $name, muscles: ${muscleGroups.map((g) => g.name).join(', ')}';
+}
+
+// ГРУППЫ МЫШЦ — перечисление всех возможных категорий
+enum MuscleGroup{
+  chest,
+  back,
+  biceps,
+  triceps,
+  frontDelt,
+  midDelt,
+  rearDelt,
+  abs,
+  lowerBack,
+  quadriceps,
+  hamstrings,
+  calves,
+  neck,
+  forearm,
+  glutes,
+}
+
+//ВПОМОГАТЕЛЬНЫЙ КЛАСС. ЧИТАЕМЫЕ НАЗВАНИЯ И ИКОНКИ
+class MuscleGroupInfo{
+  // Отображаемое название на русском
+  static String getName(MuscleGroup group) {
+    const names = {
+      MuscleGroup.chest:         'Грудь' ,
+      MuscleGroup.back:          'Спина',
+      MuscleGroup.biceps:        'Бицепс',
+      MuscleGroup.triceps:       'Трицепс',
+      MuscleGroup.frontDelt:     'Дельты(передние)',
+      MuscleGroup.midDelt:       'Дельты(средние)',
+      MuscleGroup.rearDelt:      'Дельты (задние)',
+      MuscleGroup.abs:           'Пресс',
+      MuscleGroup.lowerBack:     'Поясница',
+      MuscleGroup.quadriceps:    'Квадрицепсы',
+      MuscleGroup.hamstrings:    'Бёдра(задние)',
+      MuscleGroup.calves:        'Икры',
+      MuscleGroup.neck:          'Шея' ,
+      MuscleGroup.forearm:       'Предплечье',
+      MuscleGroup.glutes:        'Ягодицы',
+    };
+    return names[group] ?? group.name;
+  }
+
+  // Иконка для каждой группы мышц
+  static String getEmoji(MuscleGroup group) {
+    const emojis = {
+      MuscleGroup.chest:      '🫁',
+      MuscleGroup.back:       '🔙',
+      MuscleGroup.biceps:     '💪',
+      MuscleGroup.triceps:    '💪',
+      MuscleGroup.frontDelt:  '🏋️',
+      MuscleGroup.midDelt:    '🏋️',
+      MuscleGroup.rearDelt:   '🏋️',
+      MuscleGroup.abs:        '⚡',
+      MuscleGroup.lowerBack:  '🔩',
+      MuscleGroup.quadriceps: '🦵',
+      MuscleGroup.hamstrings: '🦵',
+      MuscleGroup.calves:     '🦶',
+      MuscleGroup.neck:       '🧠',
+      MuscleGroup.forearm:    '🤜',
+      MuscleGroup.glutes:     '🍑',
+    };
+    return emojis[group] ?? '💪';
   }
 }

@@ -2,38 +2,104 @@
 
 import 'package:flutter/material.dart';
 import '../models/exercise.dart';
+import '../services/exercise_database.dart';
 
 // Виджет для редактирования одного упражнения
-// StatelessWidget потому что сам не хранит состояние
 
-class ExerciseEditor extends StatelessWidget{
+class ExerciseEditor extends StatefulWidget {
   final Exercise exercise;
   final Function(Exercise) onSave;
   final VoidCallback onCancel;
 
-  // Контроллеры для полей ввода
-  final TextEditingController nameController;
-  final TextEditingController weightController;
-  final TextEditingController setsController;
-  final TextEditingController repsController;
-  final TextEditingController restController;
-
   // КОНСТРУКТОР с инициализацией
-  ExerciseEditor({
+  const ExerciseEditor({
     super.key,
     required this.exercise,
     required this.onSave,
     required this.onCancel,
-  }):
-// Инициализируем контроллеры в списке инициализаторов
-    nameController = TextEditingController(text: exercise.name),
-    weightController = TextEditingController(text:exercise.weight.toString()),
-    setsController = TextEditingController(text:exercise.sets.toString()),
-    repsController = TextEditingController(text:exercise.reps.toString()),
-    restController = TextEditingController(text:exercise.restTime.toString());
+  });
+  @override
+  State<ExerciseEditor> createState() => _ExerciseEditorState();
+}
+
+class _ExerciseEditorState extends State<ExerciseEditor> {
+
+  // Инициализируем контроллеры в списке инициализаторов
+  late TextEditingController nameController;
+ late TextEditingController weightController;
+ late TextEditingController setsController;
+ late TextEditingController repsController;
+ late TextEditingController restController;
+
+ // ПОДСКАЗКИ АВТОДОПОЛНЕНИЯ
+ List<_ExerciseTemplate_local> _suggestions = [];
+
+ // ВЫБРАННЫЕ ГРУППЫ МЫШЦ
+  late List<MuscleGroup> _selectedMuscleGroups;
 
   @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: widget.exercise.name);
+    weightController = TextEditingController(text: widget.exercise.weight.toString());
+    setsController = TextEditingController(text: widget.exercise.sets.toString());
+    repsController= TextEditingController(text: widget.exercise.reps.toString());
+    restController = TextEditingController(text: widget.exercise.restTime.toString());
 
+    // Копируем текущие мышцы упражнения
+    _selectedMuscleGroups = List.from(widget.exercise.muscleGroups);
+
+    // Подписываемся на изменения поля имени — показываем подсказки
+    nameController.addListener(_onNameChanged);
+  }
+
+  @override
+  void dispose() {
+    nameController.removeListener(_onNameChanged);
+    nameController.dispose();
+    weightController.dispose();
+    setsController.dispose();
+    repsController.dispose();
+    restController.dispose();
+    super.dispose();
+  }
+
+  // ОБРАБОТЧИК ИЗМЕНЕНИЯ ИМЕНИ
+  void _onNameChanged() {
+    if(!mounted) return;
+    final results = ExerciseDatabase.search(nameController.text);
+    setState(() {
+      // Приводим к локальному типу чтобы не тащить приватный класс наружу
+      _suggestions = results
+          .map((t) => _ExerciseTemplate_local(t.name, t.muscleGroups))
+          .toList();
+    });
+  }
+
+  // ВЫБОР ПОДСКАЗКИ
+  void _applySuggestion(_ExerciseTemplate_local suggestion) {
+    setState(() {
+      nameController.text = suggestion.name;
+      // Устанавливаем курсор в конец строки
+      nameController.selection = TextSelection.fromPosition(
+        TextPosition(offset: nameController.text.length),
+      );
+      _selectedMuscleGroups = List.from(suggestion.muscleGroups);
+      _suggestions = [];
+    });
+  }
+
+  // ПЕРЕКЛЮЧЕНИЕ ГРУППЫ МЫШЦ
+  void _toggleMuscleGroup(MuscleGroup group){
+    setState(() {
+      if (_selectedMuscleGroups.contains(group)){
+        _selectedMuscleGroups.remove(group);
+      } else {
+        _selectedMuscleGroups.add(group);
+      }
+    });
+  }
+  @override
   Widget build(BuildContext context){
     return AlertDialog(
       title: const Text('Редактировать упражнение'),
@@ -41,7 +107,7 @@ class ExerciseEditor extends StatelessWidget{
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ПОЛЕ ДЛЯ НАЗВАНИЯ
+            // ПОЛЕ ДЛЯ НАЗВАНИЯ C АВТОДОПОЛНЕНИЕМ
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
@@ -50,6 +116,58 @@ class ExerciseEditor extends StatelessWidget{
                 prefixIcon: Icon(Icons.fitness_center, color: Colors.lightBlue,)
               ),
             ),
+            const SizedBox(height: 16),
+
+            // СПИСОК ПОДСКАЗОК (появляется при вводе)
+            if (_suggestions.isNotEmpty) ... [
+              const SizedBox(height: 4,),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _suggestions.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final s = entry.value;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          dense: true,
+                          title: Text(s.name, style: const TextStyle(fontSize: 13)),
+                          subtitle: Text(
+                            s.muscleGroups.map((g) => MuscleGroupInfo.getEmoji(g)).join(' '),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          onTap: () => _applySuggestion(s),
+                        ),
+                        // Разделитель между элементами (кроме последнего)
+                        if (i < _suggestions.length - 1)
+                          const Divider(height: 1),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 16,),
+
+            // ВЫБОР ГРУПП МЫШЦ
+            Text(
+              'Группы мышц',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            _buildMuscleGroupSelector(),
+
             const SizedBox(height: 16),
 
             // СТРОКА С ВЕСОМ И ПОДХОДАМИ
@@ -66,7 +184,7 @@ class ExerciseEditor extends StatelessWidget{
                     keyboardType: TextInputType.number,
                   ),
                 ),
-                const SizedBox(width: 20, height: 20),
+                const SizedBox(width: 12),
 
                 // ПОДХОДЫ
                 Expanded(
@@ -81,7 +199,7 @@ class ExerciseEditor extends StatelessWidget{
                 ),
               ],
             ),
-            const SizedBox(width: 20, height: 20),
+            const SizedBox(height: 12),
 
             // СТРОКА С ПОВТОРЕНИЯМИ И ОТДЫХОМ
             Row(
@@ -97,7 +215,7 @@ class ExerciseEditor extends StatelessWidget{
                       keyboardType: TextInputType.number,
                     ),
                 ),
-                const SizedBox(width: 20, height: 20),
+                const SizedBox(width: 12),
 
                 // ОТДЫХ
                 Expanded(
@@ -118,10 +236,10 @@ class ExerciseEditor extends StatelessWidget{
       actions: [
         // КНОПКА ОТМЕНЫ
         TextButton(
-            onPressed: onCancel,
+            onPressed: widget.onCancel,
             child: const Text('Отмена'),
         ),
-        
+
         // КНОПКА СОХРАНЕНИЯ
         ElevatedButton(
             onPressed: () => _handleSave(context),
@@ -131,11 +249,42 @@ class ExerciseEditor extends StatelessWidget{
     );
   }
 
+  // СЕТКА ВЫБОРА ГРУПП МЫШЦ
+  Widget _buildMuscleGroupSelector(){
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: MuscleGroup.values.map((group) {
+            final isSelected = _selectedMuscleGroups.contains(group);
+            return FilterChip(
+              // FilterChip — чип с состоянием selected/unselected
+                label: Text(
+                  '${MuscleGroupInfo.getEmoji(group)} ${MuscleGroupInfo.getName(group)}',
+                  style: const TextStyle(fontSize: 11),
+                ),
+                selected: isSelected,
+                onSelected: (_) => _toggleMuscleGroup(group),
+                // Цвет зависит от выбранного/невыбранного состояния
+                selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                checkmarkColor: Theme.of(context).colorScheme.primary,
+                labelPadding: EdgeInsets.zero,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            );
+          }).toList(),
+        );
+  }
+
+
   // ОБРАБОТЧИК СОХРАНЕНИЯ
   void _handleSave(BuildContext context){
     // ПРОВЕРКА ВАЛИДНОСТИ
     if (nameController.text.isEmpty){
-      _showError(context, 'Введите название упражнения');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: const Text('Введите название упражнения'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
       return;
     }
 
@@ -146,42 +295,34 @@ class ExerciseEditor extends StatelessWidget{
     final restSeconds = int.tryParse(restController.text) ?? 60;
 
     // ПРОВЕРКА НА ПОЛОЖИТЕЛЬНЫЕ ЗНАЧЕНИЯ
-    if (weight < 0){
-      _showError(context, 'Вес не может быть отрицательным');
-      return;
-    }
-    if (sets <=0){
-      _showError(context, 'Количество подходов должно быть больше 0');
-      return;
-    }
-
-    if (reps <= 0){
-      _showError(context, 'Количество повторений должно быть больше 0');
+    if (weight <= 0 || sets <=0 || reps <= 0){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Вес, подходы и повторения должны быть больше 0'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
       return;
     }
 
-    final updatedExercise = exercise.copyWith(
+    final updated = widget.exercise.copyWith(
       name: nameController.text,
       weight: weight,
       sets: sets,
       reps: reps,
       restTime: restSeconds,
+      muscleGroups: _selectedMuscleGroups,
     );
 
     // ВЫЗЫВАЕМ КОЛБЭК
-    onSave(updatedExercise);
-
-    // ЗАКРЫВАЕМ ДИАЛОГ
+    widget.onSave(updated);
     Navigator.pop(context);
   }
+}
 
-  // ПОКАЗАТЬ ОШИБКУ
-  void _showError(BuildContext context, String message){
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
-  }
+// Локальный вспомогательный класс — зеркало приватного _ExerciseTemplate
+class _ExerciseTemplate_local {
+  final String name;
+  final List<MuscleGroup> muscleGroups;
+  _ExerciseTemplate_local(this.name, this.muscleGroups);
 }

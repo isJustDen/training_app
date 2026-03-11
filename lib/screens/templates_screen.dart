@@ -1,6 +1,7 @@
 //lib/screens/templates_screen.dart
 
 import 'package:fitflow/screens/measurements_screen.dart';
+import 'package:fitflow/screens/workout_generator_screen.dart';
 
 import '../models/exercise.dart';
 import 'package:flutter/material.dart';
@@ -95,8 +96,24 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
               icon: const Icon(Icons.refresh),
               tooltip: 'Обновить',
           ),
-          //Временная кнопка
-          ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MeasurementsScreen())), icon: Icon(Icons.straighten), label: const Text('Замеры'), )
+          //Временная кнопка замеров
+          IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MeasurementsScreen())),
+            icon: Icon(Icons.straighten),
+              tooltip: 'Замеры'),
+          //ГЕНЕРАТОР ТРЕНИРОВКИ
+          IconButton(
+            onPressed: () async {
+              final newTemplate = await Navigator.push<WorkoutTemplate>(
+                context,
+                MaterialPageRoute(builder: (_) => const WorkoutGeneratorScreen()),
+              );
+              if(newTemplate != null) _loadTemplates();
+            },
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'Генератор тренировки',
+          ),
+
         ],
       ),
       body: _buildContent(),
