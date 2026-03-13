@@ -219,13 +219,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           _buildEmptyExercises(),
 
         // УПРАЖНЕНИЯ НЕ В КРУГАХ
-        ...exercises.asMap().entries.where((entry) {
-          return !entry.value.isInAnyCircle;
-        }).map((entry){
-        final index = entry.key;
-        final exercise = entry.value;
-        return _buildExerciseCard(exercise, index,true);
-        }),
+        _buildReorderableExercises(),
       ],
     );
   }
@@ -306,6 +300,16 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // ХЭНДЛ ДЛЯ ПЕРЕТАСКИВАНИЯ
+            if (!_isSelectionMode && !exercise.isInAnyCircle)
+              ReorderableDelayedDragStartListener(
+                  child: const Icon(Icons.drag_handle, color: Colors.grey),
+                  index: _template.exercises
+                    .where((e) => !e.isInAnyCircle)
+                    .toList()
+                    .indexWhere((e) => e.id == exercise.id),
+              ),
+
             if(_isSelectionMode)
               Checkbox(
                 value: isSelected,
@@ -513,6 +517,55 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildReorderableExercises(){
+    final freeExercises = _template.exercises
+        .asMap()
+        .entries
+        .where((entry) => !entry.value.isInAnyCircle)
+        .toList();
+
+    if (freeExercises.isEmpty) return const SizedBox.shrink();
+
+    return ReorderableListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemBuilder: (context, i){
+          final originalIndex = freeExercises[i].key;
+          final exercise = freeExercises[i].value;
+          return KeyedSubtree(
+              key: ValueKey(exercise.id),
+              child: _buildExerciseCard(exercise, originalIndex, false),
+          );
+        },
+        itemCount: freeExercises.length,
+        onReorder:(oldIndex, newIndex){
+          // Flutter передаёт индексы ВНУТРИ ReorderableListView (0, 1, 2...)
+          setState(() {
+            if(newIndex > oldIndex) newIndex --;
+            // Получаем оригинальные индексы
+            final fromOriginal = freeExercises[oldIndex].key;
+            final toOriginal = freeExercises[newIndex].key;
+            // Переставляем в основном списке
+            final exercises = List<Exercise>.from(_template.exercises);
+            final item = exercises.removeAt(fromOriginal);
+            exercises.insert(toOriginal, item);
+
+            _template = _template.copyWith(exercises: exercises);
+          });
+        },
+
+      buildDefaultDragHandles: false,
+      proxyDecorator: (child, index, animation) {
+        // proxyDecorator — внешний вид карточки ПОКА её тянут
+        return Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(8),
+          child: child,
+        );
+      },
     );
   }
 
