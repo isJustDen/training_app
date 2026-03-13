@@ -13,27 +13,13 @@ import 'providers/settings_provider.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
-  try{
-  // ИНИЦИАЛИЗИРУЕМ СЕРВИС УВЕДОМЛЕНИЙ
-  await NotificationService().initialize();
-  // ЗАПРАШИВАЕМ РАЗРЕШЕНИЯ (для Android 13+ и iOS)
-  final hasPermission = await NotificationService().requestPermissions();
-
-  if (hasPermission) {
-    print('Разрешения на уведомления получены');
-  } else {
-    print('Разрешения на уведомления не получены');
-  }
-  } catch (e) {
-    print('Ошибка инициализации уведомлений: $e');
-  }
+  final settingsProvider = SettingsProvider();
+  await settingsProvider.loadSettings();
 
   runApp(
     MultiProvider(
         providers: [
-          ChangeNotifierProvider(
-            create: (_) => SettingsProvider(),
-          ),
+          ChangeNotifierProvider.value(value: settingsProvider),
         ],
       child: const WorkoutApp(),
     ),
@@ -58,14 +44,43 @@ class WorkoutApp extends StatelessWidget {
         ? ThemeMode.dark
         : ThemeMode.light,
       home: SplashScreen(
-          onInit: () async {
-          await StorageService.loadTemplates();
-          },
+          onInit: _initializeApp,
           nextScreen: const TemplatesScreen(),
       ),
       debugShowCheckedModeBanner: false,
     );
   }
+
+  // ВСЯ ИНИЦИАЛИЗАЦИЯ
+  Future<void> _initializeApp() async {
+    await Future.wait([
+      _initNotifications(),
+      _initStorage(),
+    ]);
+  }
+
+  Future<void> _initNotifications() async {
+    try{
+      await NotificationService().initialize();
+      final hasPermission = await NotificationService().requestPermissions();
+    }catch(e){
+      print('Ошибка инициализации уведомлений: $e');
+    }
+  }
+
+  Future<void> _initStorage() async {
+    try {
+      await Future.wait([
+        StorageService.loadTemplates(),
+        StorageService.loadHistory(),
+      ]);
+    } catch (e) {
+      print('Ошибка загрузки хранилища $e');
+    }
+  }
+
+
+
 }
 
 // ─────────────────────────────────────────
