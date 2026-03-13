@@ -673,6 +673,9 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       return;
     }
 
+    // СОХРАНЯЕМ КОЛИЧЕСТВО ДО ОЧИСТКИ
+    final count = _selectedExerciseIndices.length;
+
     // СОРТИРУЕМ ИНДЕКСЫ ПО ВОЗРАСТАНИЮ
     _selectedExerciseIndices.sort();
 
@@ -692,7 +695,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Создан круг с ${_selectedExerciseIndices.length} упражнений'),
+        content: Text('Создан круг с ${count} упражнений(ия)'),
         backgroundColor: Color(0xFF81C784),
       ),
     );
