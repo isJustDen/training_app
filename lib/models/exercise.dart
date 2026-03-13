@@ -141,6 +141,7 @@ enum MuscleGroup{
   neck,
   forearm,
   glutes,
+  other,
 }
 
 //ВПОМОГАТЕЛЬНЫЙ КЛАСС. ЧИТАЕМЫЕ НАЗВАНИЯ И ИКОНКИ
@@ -163,6 +164,7 @@ class MuscleGroupInfo{
       MuscleGroup.neck:          'Шея' ,
       MuscleGroup.forearm:       'Предплечье',
       MuscleGroup.glutes:        'Ягодицы',
+      MuscleGroup.other:         'Свои упражнения',
     };
     return names[group] ?? group.name;
   }
@@ -185,6 +187,7 @@ class MuscleGroupInfo{
       MuscleGroup.neck:       '🧠',
       MuscleGroup.forearm:    '🤜',
       MuscleGroup.glutes:     '🍑',
+      MuscleGroup.other:      '🏃',
     };
     return emojis[group] ?? '💪';
   }

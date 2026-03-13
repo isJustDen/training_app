@@ -65,9 +65,12 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
   }
 
   // ОБРАБОТЧИК ИЗМЕНЕНИЯ ИМЕНИ
-  void _onNameChanged() {
+  void _onNameChanged() async {
     if(!mounted) return;
-    final results = ExerciseDatabase.search(nameController.text);
+    final results = await ExerciseDatabase.searchAsync(nameController.text);
+
+    if (!mounted) return;
+
     setState(() {
       // Приводим к локальному типу чтобы не тащить приватный класс наружу
       _suggestions = results
@@ -276,7 +279,7 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
 
 
   // ОБРАБОТЧИК СОХРАНЕНИЯ
-  void _handleSave(BuildContext context){
+  void _handleSave(BuildContext context) async {
     // ПРОВЕРКА ВАЛИДНОСТИ
     if (nameController.text.isEmpty){
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,10 +298,10 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
     final restSeconds = int.tryParse(restController.text) ?? 60;
 
     // ПРОВЕРКА НА ПОЛОЖИТЕЛЬНЫЕ ЗНАЧЕНИЯ
-    if (weight <= 0 || sets <=0 || reps <= 0){
+    if ( sets <=0 || reps <= 0){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Вес, подходы и повторения должны быть больше 0'),
+          content: Text('Подходы и повторения должны быть больше 0'),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -314,9 +317,17 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
       muscleGroups: _selectedMuscleGroups,
     );
 
+    // СОХРАНЯЕМ В ЛИЧНУЮ БАЗУ
+    await ExerciseDatabase.saveUserExercise(
+    nameController.text,
+    _selectedMuscleGroups.isEmpty
+      ? [MuscleGroup.other]
+      : _selectedMuscleGroups,
+    );
+
     // ВЫЗЫВАЕМ КОЛБЭК
     widget.onSave(updated);
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 }
 

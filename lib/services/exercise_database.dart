@@ -1,12 +1,14 @@
 // services/exercise_database.dart
 
 import '../models/exercise.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // БАЗА УПРАЖНЕНИЙ — статический справочник всех известных упражнений
 class ExerciseDatabase {
-
   ExerciseDatabase._();   // Приватный конструктор — класс нельзя создать, только использовать статически
 
+  static const String _userExerciseKey = 'user_exercise_names';
   // ВСЕ УПРАЖНЕНИЯ БАЗЫ
   static const List<_ExerciseTemplate> _all = [
     // ───── ГРУДЬ ─────
@@ -95,12 +97,11 @@ class ExerciseDatabase {
     _ExerciseTemplate('Наклоны головы с сопротивлением', [MuscleGroup.neck]),
   ];
 
-  // ПОИСК ПО ЧАСТИЧНОМУ СОВПАДЕНИЮ НАЗВАНИЯ
-  static List<_ExerciseTemplate> search (String query) {
+  // Старый синхронный search оставляем для обратной совместимости
+  static List<_ExerciseTemplate> search (String query){
     if (query.isEmpty) return [];
-
     final lower = query.toLowerCase();
-    return _all
+    return _all //Ищем в статической базе
         .where((e) => e.name.toLowerCase().contains(lower))
         .take(8)
         .toList();
@@ -111,13 +112,95 @@ class ExerciseDatabase {
   static List<_ExerciseTemplate> getByMyscleGroups(List<MuscleGroup> groups){
     if (groups.isEmpty) return [];
 
-    return _all.where((e) {
-      return e.muscleGroups.any((muscle) => groups.contains(muscle));
-    }).toList();
+    return _all.where((e) =>
+       e.muscleGroups.any((muscle) => groups.contains(muscle))
+    ).toList();
+  }
+
+  // ПОИСК ПО ЧАСТИЧНОМУ СОВПАДЕНИЮ НАЗВАНИЯ
+  static Future<List<_ExerciseTemplate>> searchAsync (String query) async {
+    if (query.isEmpty) return [];
+
+    final lower = query.toLowerCase();
+
+    final fromBase = _all //Ищем в статической базе
+        .where((e) => e.name.toLowerCase().contains(lower))
+        .take(6)
+        .toList();
+
+    final userExercises = await _loadUserExercises();
+    final fromUser = userExercises //Ищем в статической базе
+        .where((e) => e.name.toLowerCase().contains(lower))
+    // Исключаем дубликаты — те что уже есть в базе
+        .where((e) => !fromBase.any((b) => b.name == e.name))
+        .take(4)
+        .toList();
+
+    return [...fromBase, ...fromUser];
   }
 
   // ПОЛУЧИТЬ ВСЕ УПРАЖНЕНИЯ (для полного списка)
   static List<_ExerciseTemplate> getAll() => List.unmodifiable(_all);
+
+  // СОХРАНИТЬ новое упражнение в пользовательскую базу
+  static Future<void> saveUserExercise(String name, List<MuscleGroup> muscleGroups) async {
+    final existsInBase = _all.any(
+    (e) => e.name.toLowerCase() == name.toLowerCase()
+    );
+    if (existsInBase) return;
+    final userExercises = await _loadUserExercises();
+
+    final alredySaved = userExercises.any(
+        (e) => e.name.toLowerCase() == name.toLowerCase()
+    );
+    if (alredySaved) return;
+
+    // Добавляем и сохраняем
+    userExercises.add(_ExerciseTemplate(name, muscleGroups));
+    await _saveUserExercises(userExercises);
+  }
+
+  // ЗАГРУЗИТЬ пользовательские упражнения из SharedPreferences
+  static Future<List<_ExerciseTemplate>> _loadUserExercises() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(_userExerciseKey);
+    if (json == null) return [];
+
+    try{
+      final list = jsonDecode(json) as List;
+      return list.map((item){
+        final groups = (item['muscleGroups'] as List? ?? [])
+            .map((g) {
+              try{
+                return MuscleGroup.values.byName(g.toString());
+              }catch(_){
+                return MuscleGroup.other;
+              }
+        }).cast<MuscleGroup>().toList();
+        return _ExerciseTemplate(item['name'], groups);
+      }).toList();
+    }catch(e){
+      return [];
+    }
+  }
+
+  // СОХРАНИТЬ список пользовательских упражнений
+  static Future<void> _saveUserExercises(List<_ExerciseTemplate> exercises) async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = jsonEncode(
+      exercises.map((e) => {
+        'name': e.name,
+        'muscleGroups': e.muscleGroups.map((g) => g.name).toList(),
+      }).toList(),
+    );
+    await prefs.setString(_userExerciseKey, json);
+  }
+
+  // ПОЛУЧИТЬ ВСЕ пользовательские упражнения (для отображения списка)
+  static Future<List<_ExerciseTemplate>> getUserExercises() async {
+    return await _loadUserExercises();
+  }
+
 }
 
 // ШАБЛОН УПРАЖНЕНИЯ — только название и мышцы, без параметров тренировки
