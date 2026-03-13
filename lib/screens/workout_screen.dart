@@ -102,7 +102,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
   @override
-  void dispoce(){
+  void dispose(){
     _clockTimer?.cancel();
     _dimTimer?.cancel();
     super.dispose();
@@ -1270,6 +1270,18 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ЗАВЕРШЕНИЕ ТРЕНИРОВКИ
   void _finishWorkout(){
+    final totalCompletedSets = _exercisesProgress.fold(0, (sum, p) => sum + p.completedSetsCount,);
+
+    if (totalCompletedSets == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Нечего сохранять, нет выполненных подходов'),
+        backgroundColor: Colors.orange,
+        duration: Duration(seconds: 3)),
+      );
+      return;
+    }
+
+
     final duration = DateTime.now().difference(_workoutStartTime);
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
