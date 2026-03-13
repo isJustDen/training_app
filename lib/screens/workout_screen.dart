@@ -58,15 +58,19 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   Timer? _clockTimer;
 
+  Timer ? _dimTimer;
+  bool _isDimmed = false;
+  static const int _dimAfterSeconds = 15;
+
   // initState() - ВЫЗЫВАЕТСЯ ПРИ СОЗДАНИИ ВИДЖЕТА
   @override
   void initState(){
     super.initState();
     _initializeWorkout();
-
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_){
       if(mounted) setState(() {});
     });
+    _resetDimTimer();
   }
 
   // ИНИЦИАЛИЗАЦИЯ ТРЕНИРОВКИ
@@ -100,6 +104,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   @override
   void dispoce(){
     _clockTimer?.cancel();
+    _dimTimer?.cancel();
     super.dispose();
   }
 
@@ -130,12 +135,49 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   Widget build(BuildContext context){
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-      bottomNavigationBar: _buildBottomBar(),
+      child: GestureDetector(
+        onTap: _resetDimTimer,
+        onPanDown: (_) => _resetDimTimer(),// ловим и свайпы тоже
+        behavior: HitTestBehavior.translucent,
+        child: Stack(
+          children: [
+            Scaffold(
+            appBar: _buildAppBar(),
+            body: _buildBody(),
+            bottomNavigationBar: _buildBottomBar(),
+              ),
+            // ЗАТЕМНЯЮЩИЙ СЛОЙ
+            if(_isDimmed)
+              GestureDetector(
+                onTap: _resetDimTimer,
+                child: Container(
+                  color: Colors.black.withOpacity(0.9),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.touch_app,
+                          color: Colors.white.withOpacity(0.3),
+                          size: 100,
+                        ),
+                        const SizedBox(height: 50,),
+                        Text(
+                          'Коснитесь для продолжения',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.3),
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   // ВЕРХНЯЯ ПАНЕЛЬ (AppBar)
@@ -1776,6 +1818,17 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           ),
         ),
       );
+  }
+
+  // ЗАПУСК ТАЙМЕРА ЗАТЕМНЕНИЯ
+  void _resetDimTimer() {
+    _dimTimer?.cancel();
+    if(_isDimmed){
+      setState(() => _isDimmed = false);// снимаем затемнение при касании
+    }
+    _dimTimer = Timer(const Duration(seconds: _dimAfterSeconds), () {
+      if (mounted) setState(() => _isDimmed = true);
+    });
   }
 
 }
