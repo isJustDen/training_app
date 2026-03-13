@@ -370,15 +370,6 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
                       letterSpacing: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 12,),
-                    Text('Продолжительность тренировки: ${minutes}:${seconds.toString().padLeft(2, '0')}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.7),
-                        letterSpacing: 1.0,
-                      ),
-                    ),
                 ],
               ),
           );

@@ -15,6 +15,7 @@ import '../models/workout_history.dart';
 import '../models/exercise.dart';
 import '../services/history_service.dart';
 import '../services/sound_service.dart';
+import 'dart:async';
 
 
 // ЭКРАН АКТИВНОЙ ТРЕНИРОВКИ
@@ -55,11 +56,17 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   int _circleRestTimeRemaining = 0; // Таймер отдыха после круга
   bool _isCircleResting = false; // Флаг отдыха после круга
 
+  Timer? _clockTimer;
+
   // initState() - ВЫЗЫВАЕТСЯ ПРИ СОЗДАНИИ ВИДЖЕТА
   @override
   void initState(){
     super.initState();
     _initializeWorkout();
+
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_){
+      if(mounted) setState(() {});
+    });
   }
 
   // ИНИЦИАЛИЗАЦИЯ ТРЕНИРОВКИ
@@ -88,6 +95,12 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     if (savedSession != null && savedSession.hasProgress && mounted) {
       _showRestoreSessionDialog(savedSession);
     }
+  }
+
+  @override
+  void dispoce(){
+    _clockTimer?.cancel();
+    super.dispose();
   }
 
   //МЕТОД ДЛЯ ЗАГРУЗКИ ИСТОРИИ
@@ -650,6 +663,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // НИЖНЯЯ ПАНЕЛЬ (BottomAppBar)
   Widget _buildBottomBar(){
+    final duration = DateTime.now().difference(_workoutStartTime);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+
     // ✅ GUARD — если список пуст, показываем заглушку
     if (_exercisesProgress.isEmpty){
       return BottomAppBar(
@@ -683,26 +700,17 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               ),
             ),
 
-            // ИНФОРМАЦИЯ О ТЕКУЩЕМ УПРАЖНЕНИИ
+            // ИНФОРМАЦИЯ О ВРЕМЕНИ
             Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                Text(
-                  'Упражнение ${_currentExerciseIndex+1}',
-                  style: const TextStyle(fontSize: 8, color: Colors.grey),
-                ),
-                Text(
-                  '${_exercisesProgress[_currentExerciseIndex].exercise.name}',
-                  style: const TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${_exercisesProgress[_currentExerciseIndex].remainingSets} подходов осталось',
-                  style: const TextStyle(
-                    fontSize: 8,
-                    color: Colors.grey,
+                const SizedBox(height: 12,),
+                Text( '${minutes}:${seconds.toString().padLeft(2, '0')}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.7),
+                    letterSpacing: 1.0,
                   ),
                 ),
               ],
@@ -1117,8 +1125,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             final minutes = selectedTime ~/ 60;
             final seconds = selectedTime % 60;
             final label = minutes > 0
-                ? '${minutes}min : ${seconds}sec'
-                : '${seconds}sec';
+                ? '${minutes}мин : ${seconds}сек'
+                : '${seconds}сек';
 
             return AlertDialog(
               title: const Text('Таймер отдыха'),
