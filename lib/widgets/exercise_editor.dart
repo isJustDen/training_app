@@ -37,6 +37,9 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
  // ВЫБРАННЫЕ ГРУППЫ МЫШЦ
   late List<MuscleGroup> _selectedMuscleGroups;
 
+  // ТЕКСТ ОШИБКИ ВАЛИДАЦИИ
+  String? _errorText;
+
   @override
   void initState() {
     super.initState();
@@ -110,6 +113,35 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // ПОКАЗЫВАЕМ ОШИБКУ ЕСЛИ ЕСТЬ
+            if (_errorText != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                    const SizedBox(width: 8,),
+                    Expanded(
+                        child: Text(
+                          _errorText!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            fontSize: 13,
+                          ),
+                        ),
+                    ),
+                  ],
+                ),
+              ),
             // ПОЛЕ ДЛЯ НАЗВАНИЯ C АВТОДОПОЛНЕНИЕМ
             TextField(
               controller: nameController,
@@ -155,21 +187,6 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
                 ),
               ),
             ],
-
-            const SizedBox(height: 16,),
-
-            // ВЫБОР ГРУПП МЫШЦ
-            Text(
-              'Группы мышц',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            _buildMuscleGroupSelector(),
 
             const SizedBox(height: 16),
 
@@ -280,14 +297,12 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
 
   // ОБРАБОТЧИК СОХРАНЕНИЯ
   void _handleSave(BuildContext context) async {
-    // ПРОВЕРКА ВАЛИДНОСТИ
+    // СБРАСЫВАЕМ ПРЕДЫДУЩУЮ ОШИБКУ
+    setState(() => _errorText = null);
+
+    // ПРОВЕРКА ИМЕНИ
     if (nameController.text.isEmpty){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: const Text('Введите название упражнения'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      setState(() => _errorText = 'Введите название упражнения');
       return;
     }
 
@@ -299,12 +314,7 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
 
     // ПРОВЕРКА НА ПОЛОЖИТЕЛЬНЫЕ ЗНАЧЕНИЯ
     if ( sets <=0 || reps <= 0){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Подходы и повторения должны быть больше 0'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      setState(() => _errorText = 'Подходы и повторения должны быть больше 0');
       return;
     }
 
