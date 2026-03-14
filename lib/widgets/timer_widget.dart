@@ -101,16 +101,16 @@ class _TimerWidgetState extends State<TimerWidget>{
     final seconds = (_remainingTime % 60).toString().padLeft(2, '0');
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
-        border: Border.all(color: Colors.blue.shade200),
-        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: Colors.orange.shade200, width: 2),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
           // ИКОНКА ТАЙМЕРА
-          const Icon(Icons.timer, color: Colors.blue),
+          const Icon(Icons.timer_outlined, color: Colors.blue, size: 50,),
           const SizedBox(width: 12),
 
           // ТЕКСТ С ОСТАВШИМСЯ ВРЕМЕНЕМ
@@ -149,7 +149,7 @@ class _TimerWidgetState extends State<TimerWidget>{
                 //   );
                   widget.onSkip!();
                 },
-                icon: const Icon(Icons.stop, color: Colors.blueGrey, size: 40,),
+                icon: const Icon(Icons.stop_circle_outlined, color: Colors.blueGrey, size: 40,),
                 tooltip: 'Пропустить отдых',
             ),
         ],
