@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'screens/templates_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/settings_provider.dart';
+import 'screens/home_screen.dart';
 
 // ГЛАВНАЯ ФУНКЦИЯ
 void main() async{
@@ -45,7 +46,7 @@ class WorkoutApp extends StatelessWidget {
         : ThemeMode.light,
       home: SplashScreen(
           onInit: _initializeApp,
-          nextScreen: const TemplatesScreen(),
+          nextScreen: const HomeScreen(),
       ),
       debugShowCheckedModeBanner: false,
     );

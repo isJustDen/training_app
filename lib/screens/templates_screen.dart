@@ -65,60 +65,120 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Мои тренировки'),
-        centerTitle: true,
-        actions: [
-          // КНОПКА НАСТРОЕК
-          IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.settings),
-              tooltip: 'Настройка',
-          ),
-
-          // КНОПКА СТАТИСТИКИ
-          IconButton(
-            onPressed: () => _openStats(),
-            icon: const Icon(Icons.assessment),
-            tooltip: 'Статистика',
-          ),
-
-          // КНОПКА ОБНОВЛЕНИЯ
-          IconButton(
-              onPressed: _loadTemplates,
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Обновить',
-          ),
-          //Временная кнопка замеров
-          IconButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MeasurementsScreen())),
-            icon: Icon(Icons.straighten),
-              tooltip: 'Замеры'),
-          //ГЕНЕРАТОР ТРЕНИРОВКИ
-          IconButton(
-            onPressed: () async {
-              final newTemplate = await Navigator.push<WorkoutTemplate>(
-                context,
-                MaterialPageRoute(builder: (_) => const WorkoutGeneratorScreen()),
-              );
-              if(newTemplate != null) _loadTemplates();
-            },
-            icon: const Icon(Icons.auto_awesome),
-            tooltip: 'Генератор тренировки',
-          ),
-
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(child: _buildContent()),
         ],
       ),
-      body: _buildContent(),
       floatingActionButton: _buildAddButton(),
     );
+  }
+
+  // НОВЫЙ КРАСИВЫЙ ХЕДЕР вместо AppBar
+  Widget _buildHeader() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.primary,
+              colorScheme.primary.withOpacity(0.8)
+            ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+          child: Padding(
+              padding: const EdgeInsetsGeometry.fromLTRB(20, 8, 12, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // СТРОКА: Заголовок + кнопки действий
+                Row(
+                  children: [
+                    // ЗАГОЛОВОК
+                    Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Мои тренировки',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '${_templates.length} шаблонов',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.white.withOpacity(0.7),
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ),
+
+                    // КНОПКИ ДЕЙСТВИЙ в хедере
+                    _buildHeaderAction(
+                      icon: Icons.auto_awesome_rounded,
+                      tooltip: 'Генератор',
+                      onTap: _openGenerator,
+                    ),
+
+                    SizedBox(width: 8),
+
+                    _buildHeaderAction(
+                      icon: Icons.refresh_rounded,
+                      tooltip: 'Обновить',
+                      onTap: _loadTemplates,
+                    ),
+
+                  ],
+                ),
+              ],
+            ),
+          ),
+      ),
+    );
+  }
+
+  // КНОПКА В ХЕДЕРЕ — полупрозрачная
+  Widget _buildHeaderAction({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: Colors.white, size: 22),
+        ),
+      ),
+    );
+  }
+
+  // МЕТОД ГЕНЕРАТОРА
+  void _openGenerator() async {
+    final newTemplate = await Navigator.push<WorkoutTemplate>(
+      context,
+      MaterialPageRoute(builder: (_)=> const WorkoutGeneratorScreen()),
+    );
+    if(newTemplate != null) _loadTemplates();
   }
 
   // ПОСТРОЕНИЕ КОНТЕНТА В ЗАВИСИМОСТИ ОТ СОСТОЯНИЯ
