@@ -172,6 +172,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   // СПИСОК ТРЕНИРОВОК
   Widget _buildTemplatesList() {
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80),
       itemCount: _templates.length,
       itemBuilder: (context, index) {
         final template = _templates[index];
