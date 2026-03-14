@@ -150,26 +150,29 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             if(_isDimmed)
               GestureDetector(
                 onTap: _resetDimTimer,
-                child: Container(
-                  color: Colors.black.withOpacity(0.9),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.touch_app,
-                          color: Colors.white.withOpacity(0.3),
-                          size: 100,
-                        ),
-                        const SizedBox(height: 50,),
-                        Text(
-                          'Коснитесь для продолжения',
-                          style: TextStyle(
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.9),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.touch_app,
                             color: Colors.white.withOpacity(0.3),
-                            fontSize: 20,
+                            size: 100,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 50,),
+                          Text(
+                            'Коснитесь для продолжения',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.3),
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
