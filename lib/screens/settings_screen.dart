@@ -24,21 +24,10 @@ class _SettingsScreenState extends State<SettingsScreen>{
     return Scaffold(
       appBar: AppBar(
         title: const Text('Настройки'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ЗАГОЛОВОК
-          const Text(
-            'Настройки приложения',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-
           // РАЗДЕЛ: ВНЕШНИЙ ВИД
           _buildSectionHeader('Внешний вид'),
           Card(
