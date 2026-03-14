@@ -199,16 +199,17 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      backgroundColor: const Color(0xFF060B14),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           // СЛОЙ 1: Фоновый градиент
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0D1B2A), Color(0xFF060B14)] // Светлее сверху
+                  colors: [ Theme.of(context).colorScheme.surface,
+                            Theme.of(context).colorScheme.background,] // Светлее сверху
               ),
             ),
           ),
@@ -352,10 +353,10 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
                   Text(
                     _motivationPhrase,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 0.5,
                       height: 1.2, // Межстрочный интервал
                     ),
@@ -366,7 +367,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.white.withOpacity(0.45),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -386,9 +387,9 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
           ),
           child: Column(
             children: [
@@ -470,7 +471,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
               label,
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.white.withOpacity(0.4),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                 letterSpacing: 0.5,
               ),
             ),

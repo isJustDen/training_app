@@ -173,7 +173,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF3A3A5C),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           // СЛОЙ 1: Фоновые декоративные элементы
@@ -220,7 +220,7 @@ class _SplashScreenState extends State<SplashScreen>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.blue.withOpacity(0.15), // Полупрозрачный центр
+                  Theme.of(context).colorScheme.primary.withOpacity(0.15), // Полупрозрачный центр
                   Colors.transparent, // Исчезает к краям
                 ],
               ),
@@ -239,7 +239,7 @@ class _SplashScreenState extends State<SplashScreen>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.teal.withOpacity(0.12),
+                  Theme.of(context).colorScheme.secondary.withOpacity(0.12),
                   Colors.transparent,
                 ],
               ),
@@ -326,12 +326,12 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 children: [
                   // Название приложения
-                  const Text(
+                  Text(
                     'Дневничёк',
                     style: TextStyle(
                       fontSize: 42,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
@@ -341,7 +341,7 @@ class _SplashScreenState extends State<SplashScreen>
                     'Твоя персональная записная книжка',
                     style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                         letterSpacing: 1.2
                     ),
                   ),
@@ -368,7 +368,7 @@ class _SplashScreenState extends State<SplashScreen>
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: _progressValue.value,
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     Color(0xFF2979FF),
                   ),
@@ -381,7 +381,7 @@ class _SplashScreenState extends State<SplashScreen>
                 _isReady ? 'Готов' : 'Загрузка...',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                   letterSpacing: 1.5,
                 ),
               ),
