@@ -115,7 +115,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
   // СВОРАЧИВАЮЩИЙСЯ APPBAR — при скролле сжимается
   Widget _buildSliverAppBar(ColorScheme colorScheme){
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 140,
       floating: false,
       pinned: true, // Остаётся видимым при скролле
       backgroundColor: colorScheme.primary,

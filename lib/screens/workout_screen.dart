@@ -298,9 +298,15 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
         // ОПРЕДЕЛЯЕМ, ЯВЛЯЕТСЯ ЛИ ЭТО ТЕКУЩИМ КРУГОМ
 
-        final isCurrentCircle = _isInCircleMode &&
-            _currentCircleIndex <_workoutCircles.length &&
-            _workoutCircles[_currentCircleIndex].number == circleNumber;
+        final currentExercise = _exercisesProgress.isNotEmpty
+            ? _exercisesProgress[_currentExerciseIndex].exercise
+            : null;
+
+        // Круг "текущий" если в нём находится текущее упражнение
+        final isCurrentCircle = isInCircle &&
+            currentExercise != null &&
+            currentExercise.isInAnyCircle &&
+            currentExercise.circleNumber == circleNumber;
 
         return Stack(
           children: [
