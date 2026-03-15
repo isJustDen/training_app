@@ -1,6 +1,5 @@
 //lib/screens/templates_screen.dart
 
-import 'package:fitflow/screens/measurements_screen.dart';
 import 'package:fitflow/screens/workout_generator_screen.dart';
 
 import '../models/exercise.dart';
@@ -12,7 +11,6 @@ import 'workout_screen.dart';
 import 'stats_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
-import 'settings_screen.dart';
 
 
 class TemplatesScreen extends StatefulWidget{

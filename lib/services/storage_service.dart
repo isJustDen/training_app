@@ -1,6 +1,7 @@
 //services/storage_service.dart
 
 import 'dart:convert';
+import 'package:fitflow/models/workout_category.dart';
 import 'package:fitflow/models/workout_session.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,8 @@ class StorageService {
   static const String _historyKey = 'workout_history';
 
   static const String _sessionKey = 'active_workout_session'; // КЛЮЧ для хранения активной сессии
+
+  static const String _categoriesKey = 'workout_categories';
 
   // МЕТОД ДЛЯ ПОЛУЧЕНИЯ ЭКЗЕМПЛЯРА SharedPreferences
   static Future <SharedPreferences> get _prefs async {
@@ -426,4 +429,23 @@ class StorageService {
     await prefs.remove(_sessionKey);
   }
 
+  // ЗАГРУЗКА КАТЕГОРИЙ
+  static Future<List<WorkoutCategory>> loadCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_categoriesKey) ?? [];
+    return raw.map((s) {
+      try {
+        return WorkoutCategory.fromMap(jsonDecode(s));
+      } catch (_){
+        return null;
+      }
+    }).whereType<WorkoutCategory>().toList();
+  }
+
+  // СОХРАНЕНИЕ КАТЕГОРИЙ
+  static Future<void> saveCategories(List<WorkoutCategory> categories) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = categories.map((c) => jsonEncode(c.toMap())).toList();
+    await prefs.setStringList(_categoriesKey, raw);
+  }
 }

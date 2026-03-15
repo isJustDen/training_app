@@ -1,5 +1,6 @@
 //screens/home_screen.dart
 
+import 'package:fitflow/screens/categories_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'templates_screen.dart';
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen>
         onPageChanged: (index) => setState(() => _currentIndex = index),
         children: [
           // ВКЛАДКА 1: ТРЕНИРОВКИ
-          const TemplatesScreen(),
+          const CategoriesScreen(),
 
           // ВКЛАДКА 2: СТАТИСТИКА
           StatsScreen(currentExercises: _allExercises),
