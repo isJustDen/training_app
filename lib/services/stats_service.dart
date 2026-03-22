@@ -14,13 +14,8 @@ class StatsService {
       required int currentSets,
       required double currentWeight,
   }) {
-      print('Анализ эффективности для: $exerciseName');
-      print('Текущие значения: $currentSets подходов, $currentReps повторений, $currentWeight кг');
-
       // РАССЧИТЫВАЕМ ТЕКУЩИЙ ОБЪЁМ
       double currentVolume = currentWeight * currentSets * currentReps;
-      print('Текущий объём: $currentVolume кг (вес*подходы*повторения)');
-
     // 1. СОБИРАЕМ ВСЕ ИСТОРИЧЕСКИЕ ДАННЫЕ ПО ЭТОМУ УПРАЖНЕНИЮ
     List<double> historicalVolumes = [];
 
@@ -29,23 +24,17 @@ class StatsService {
         if (exercise.name == exerciseName && exercise.sets > 0 && exercise.reps > 0) {
           double volume = exercise.weight * exercise.sets * exercise.reps;
           historicalVolumes.add(volume);
-          print('   Найдено:${exercise.sets} * ${exercise.reps} * ${exercise.weight} кг =  ${volume.toStringAsFixed(1)} кг');
         }
       }
     }
-
-    print('    Исторические объёмы: $historicalVolumes');
-
     //Если текущие повторения 0 - сразу возвращаем 0% эффективности
     if (currentReps == 0){
-      print('Текущие повторения = 0. Возвращаем 0%');
       return 0.0;
     }
 
 
     // 2. ЕСЛИ ИСТОРИЧЕСКИХ ДАННЫХ НЕТ - ВОЗВРАЩАЕМ 100%
     if (historicalVolumes.isEmpty){
-      print('Нет истоических данных. Возвращаем 100%');
       return 100.0;
     }
 
@@ -53,17 +42,14 @@ class StatsService {
     List<double>nonZeroHistoricalVolumes = historicalVolumes.where((volume) => volume>0).toList();
 
     if(nonZeroHistoricalVolumes.isEmpty){
-      print('Все исторические значения = 0. Текущие >0. Возвращаем 200 процентво как бонус');
       return 200.0;
     }
 
     // 3. РАССЧИТЫВАЕМ СРЕДНЕЕ КОЛИЧЕСТВО ПОВТОРЕНИЙ только по ненулевым значениям
     double averageVolume = nonZeroHistoricalVolumes.reduce((a,b) => a+b)/nonZeroHistoricalVolumes.length;
-    print('Средние повторения (без нулей): ${averageVolume.toStringAsFixed(1)}');
 
     // 4. РАССЧИТЫВАЕМ ЭФФЕКТИВНОСТЬ
     double efficiency = (currentVolume/averageVolume) * 100;
-    print('Эффективность:${efficiency.toStringAsFixed(1)} ');
 
     // 5. ОКРУГЛЯЕМ ДО 1 ЗНАКА ПОСЛЕ ЗАПЯТОЙ
     return double.parse(efficiency.toStringAsFixed(1));
@@ -73,21 +59,26 @@ class StatsService {
   static double getAverangeWeight({
     required List<WorkoutHistory> history,
     required String exerciseName,
+    bool isTimeBased = false,
   }) {
-    List<double> weights = [];
+    List<double> values = [];
 
     for (var workout in history) {
       for (var exercise in workout.exercises) {
-        if (exercise.name == exerciseName && exercise.weight >0){
-          weights.add(exercise.weight);
+        if (exercise.name == exerciseName ) {
+          if (isTimeBased) {
+            if (exercise.reps > 0) values.add(exercise.reps.toDouble());
+          } else {
+            if (exercise.weight > 0) values.add(exercise.weight);
+          }
         }
       }
     }
 
-    if (weights.isEmpty) return 0.0;
+    if (values.isEmpty) return 0.0;
 
-    double sum =weights.reduce((a, b) => a + b);
-    return double.parse((sum/weights.length).toStringAsFixed(1));
+    double sum = values.reduce((a, b) => a + b);
+    return double.parse((sum/values.length).toStringAsFixed(1));
   }
 
   // ПОЛУЧИТЬ ИСТОРИЮ ПРОГРЕССА ПО УПРАЖНЕНИЮ
@@ -175,6 +166,9 @@ class StatsService {
 
     final realExercise = lastRealResult ?? templateExercise;
 
+    final lastResult = _getLastResultExercise(history, exerciseName);
+    final isTimeBased = lastResult?.isTimeBased ?? templateExercise.isTimeBased;
+
     stats[exerciseName] = ExerciseStats(
       efficiency: calculateEfficiency(
           history: history,
@@ -186,6 +180,7 @@ class StatsService {
       averageWeight: getAverangeWeight(
           history: history,
           exerciseName: exerciseName,
+          isTimeBased: isTimeBased,
       ),
       progress: calculateProgress(
           history: history,
@@ -198,7 +193,9 @@ class StatsService {
           exerciseName: exerciseName,
           currentReps: realExercise.reps,
           currentSets: realExercise.sets,
-          currentWeight: realExercise.weight),
+          currentWeight: realExercise.weight
+      ),
+      isTimeBased: isTimeBased,
     );
   }
 
@@ -273,12 +270,14 @@ class ExerciseStats{
   double averageWeight;
   double progress;
   double volumeProgress;
+  bool isTimeBased;
 
   ExerciseStats ({
     required this.efficiency,
     required this.progress,
     required this.averageWeight,
     this.volumeProgress = 0.0,
+    this.isTimeBased = false,
   });
 }
 

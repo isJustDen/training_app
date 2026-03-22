@@ -30,6 +30,8 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
  late TextEditingController setsController;
  late TextEditingController repsController;
  late TextEditingController restController;
+ late bool _isTimeBased;
+ late TextEditingController targetSecondsController;
 
  // ПОДСКАЗКИ АВТОДОПОЛНЕНИЯ
  List<_ExerciseTemplate_local> _suggestions = [];
@@ -54,6 +56,11 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
 
     // Подписываемся на изменения поля имени — показываем подсказки
     nameController.addListener(_onNameChanged);
+
+    _isTimeBased = widget.exercise.isTimeBased;
+    targetSecondsController = TextEditingController(
+      text: widget.exercise.targetSeconds.toString()
+    );
   }
 
   @override
@@ -64,6 +71,7 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
     setsController.dispose();
     repsController.dispose();
     restController.dispose();
+    targetSecondsController.dispose();
     super.dispose();
   }
 
@@ -153,6 +161,133 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
             ),
             const SizedBox(height: 16),
 
+            Row(
+              children: [
+                Text('Тип: ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary
+                  ),
+                ),
+                const Spacer(),
+                SegmentedButton<bool>(
+                    segments: const[
+                      ButtonSegment(
+                        value: false,
+                        label: Text('Повтор.'),
+                        icon: Icon(Icons.repeat_rounded, size: 12)
+                      ),
+                      ButtonSegment(
+                          value: true,
+                          label: Text('Время'),
+                          icon: Icon(Icons.timer_rounded, size: 12)
+                      ),
+                    ],
+                    selected: {_isTimeBased},
+                    onSelectionChanged: (value){
+                      setState(() => _isTimeBased = value.first);
+                    },
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            if (_isTimeBased) ... [
+              TextField(
+                controller: targetSecondsController,
+                decoration: const InputDecoration(
+                  labelText: 'Целевое время (сек)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.timer_rounded),
+                  hintText: 'Например: 60 (1 минута)',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8,),
+              // ПОДСКАЗКА — показываем в минутах
+              Builder(builder: (context){
+                final secs = int.tryParse(targetSecondsController.text) ?? 0;
+                final mins = secs ~/ 60;
+                final rem = secs % 60;
+                final label = mins > 0
+                  ? '$mins мин ${rem > 0? "$rem сек": ""}'
+                  : '$secs сек';
+                return Text(
+                  'выбранное время = $label',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              }),
+            ] else ...[
+              // СТРОКА С ВЕСОМ И ПОДХОДАМИ
+              Row(
+                children: [
+                  // ВЕС
+                  Expanded(
+                    child: TextField(
+                      controller: weightController,
+                      decoration: const InputDecoration(
+                        labelText: 'Вес (кг)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // ПОДХОДЫ
+                  Expanded(
+                    child: TextField(
+                      controller: setsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Подходы',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // СТРОКА С ПОВТОРЕНИЯМИ И ОТДЫХОМ
+              Row(
+                children: [
+                  // ПОВТОРЕНИЯ
+                  Expanded(
+                    child: TextField(
+                      controller: repsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Повторения',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // ОТДЫХ
+                  Expanded(
+                    child: TextField(
+                      controller: restController,
+                      decoration: const InputDecoration(
+                        labelText: 'Отдых(сек)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+
             // СПИСОК ПОДСКАЗОК (появляется при вводе)
             if (_suggestions.isNotEmpty) ... [
               const SizedBox(height: 4,),
@@ -190,66 +325,7 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
 
             const SizedBox(height: 16),
 
-            // СТРОКА С ВЕСОМ И ПОДХОДАМИ
-            Row(
-              children: [
-                // ВЕС
-                Expanded(
-                  child: TextField(
-                    controller: weightController,
-                    decoration: const InputDecoration(
-                      labelText: 'Вес (кг)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 12),
 
-                // ПОДХОДЫ
-                Expanded(
-                    child: TextField(
-                      controller: setsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Подходы',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // СТРОКА С ПОВТОРЕНИЯМИ И ОТДЫХОМ
-            Row(
-              children: [
-                // ПОВТОРЕНИЯ
-                Expanded(
-                    child: TextField(
-                      controller: repsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Повторения',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                ),
-                const SizedBox(width: 12),
-
-                // ОТДЫХ
-                Expanded(
-                  child: TextField(
-                    controller: restController,
-                    decoration: const InputDecoration(
-                      labelText: 'Отдых(сек)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -306,6 +382,8 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
       return;
     }
 
+    final targetSeconds = int.tryParse(targetSecondsController.text) ?? 30;
+
     // ПАРСИМ ЧИСЛА
     final weight = double.tryParse(weightController.text) ?? 0.0;
     final sets = int.tryParse(setsController.text) ?? 3;
@@ -325,6 +403,8 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
       reps: reps,
       restTime: restSeconds,
       muscleGroups: _selectedMuscleGroups,
+      targetSeconds: targetSeconds,
+      isTimeBased: _isTimeBased,
     );
 
     // СОХРАНЯЕМ В ЛИЧНУЮ БАЗУ

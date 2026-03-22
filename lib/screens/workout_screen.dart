@@ -4,8 +4,10 @@ import 'package:fitflow/models/workout_circle.dart';
 import 'package:fitflow/models/workout_session.dart';
 import 'package:fitflow/screens/workout_complete_screen.dart';
 import 'package:fitflow/utils/circle_utils.dart';
+import 'package:fitflow/widgets/stopwatch_widget.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
 import '../services/notification_service.dart';
@@ -363,7 +365,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                               ),
 
                             // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
-                            if (lastResult != null)
+                            if (lastResult != null && !exercise.isTimeBased)
                               _buildHistoryIndicator(exercise, lastResult),
 
 
@@ -377,113 +379,142 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
                   // ПАРАМЕТРЫ УПРАЖНЕНИЯ В 2 СТРОКИ
                   // СТРОКА 1: ВЕС, ПОДХОДЫ, ПОВТОРЕНИЯ
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
+                  if (!exercise.isTimeBased) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
 
-                      // ВЕС
-                      _buildParameterCard(
-                        title: 'Вес',
-                        value: '${progress.currentWeight.toStringAsFixed(1)} кг',
-                        icon: Icons.fitness_center,
-                        onEdit: progress.isCompleted ? null : () => _showWeightEditor(index),
-                        color: progress.isCompleted ? Colors.green : Theme.of(context).colorScheme.onSurface,
-                      ),
-
-                      // ПОДХОДЫ
-                      _buildParameterCard(
-                        title: 'Подходы',
-                        value: '${progress.completedSetsCount}/${exercise.sets}',
-                        icon: Icons.repeat,
-                        color: progress.isCompleted ? Colors.green: Theme.of(context).colorScheme.onSurface,
-                      ),
-
-                      // ПОВТОРЕНИЯ
-                      _buildParameterCard(
-                        title: 'Повторения',
-                        value: '${progress.currentReps}',
-                        icon: Icons.repeat_one,
-                        onIncrement: progress.isCompleted ? null : () => _incrementReps(index),
-                        onDecrement: progress.isCompleted ? null : () => _decrementReps(index),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // СТРОКА 2: ПРОГРЕСС И ДЕЙСТВИЯ
-                  Row(
-                    children: [
-                      // ПРОГРЕСС-БАР
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            LinearProgressIndicator(
-                              value: progress.progressPercentage / 100,
-                              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                progress.isCompleted ? Colors.green : Colors.blue,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${progress.progressPercentage.toStringAsFixed(0)}%',
-                              style: const TextStyle(fontSize: 12, color:Colors.white),
-                            ),
-                          ],
+                        // ВЕС
+                        _buildParameterCard(
+                          title: 'Вес',
+                          value: '${progress.currentWeight.toStringAsFixed(1)} кг',
+                          icon: Icons.fitness_center,
+                          onEdit: progress.isCompleted ? null : () => _showWeightEditor(index),
+                          color: progress.isCompleted ? Colors.green : Theme.of(context).colorScheme.onSurface,
                         ),
-                      ),
 
-                      const SizedBox(width: 12),
+                        // ПОДХОДЫ
+                        _buildParameterCard(
+                          title: 'Подходы',
+                          value: '${progress.completedSetsCount}/${exercise.sets}',
+                          icon: Icons.repeat,
+                          color: progress.isCompleted ? Colors.green: Theme.of(context).colorScheme.onSurface,
+                        ),
 
-                      // КНОПКИ ДЕЙСТВИЙ
-                      if (!progress.isCompleted) ... [
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              if (_shouldShowTimer(exercise)) ...[
-                              // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
-                              IconButton(
-                                onPressed: progress.isCompleted
-                                    ? null
-                                    : () => _completeSet(index),
-                                icon: Icon(
-                                  Icons.check_circle,
-                                  color: progress.isCompleted ? Colors.grey: Colors.green,
-                                ),
-                                tooltip: 'Завершить подход',
+                        // ПОВТОРЕНИЯ
+                        _buildParameterCard(
+                          title: 'Повторения',
+                          value: '${progress.currentReps}',
+                          icon: Icons.repeat_one,
+                          onIncrement: progress.isCompleted ? null : () => _incrementReps(index),
+                          onDecrement: progress.isCompleted ? null : () => _decrementReps(index),
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  if (exercise.isTimeBased) ... [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.repeat, size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                            'Подходы: ${progress.completedSetsCount}/ ${exercise.sets}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  // СТРОКА 2: ПРОГРЕСС И ДЕЙСТВИЯ
+                  if (exercise.isTimeBased && !progress.isCompleted)
+                    StopwatchWidget(
+                        targetSeconds: exercise.targetSeconds,
+                        onTarget: () {
+                          HapticFeedback.heavyImpact();},
+                        onStopped: (elapsedSeconds) {
+                          _completeTimeBasedSet(index, elapsedSeconds);
+                        },
+                    ) else
+                        Row(
+                          children: [
+                            // ПРОГРЕСС-БАР
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  LinearProgressIndicator(
+                                    value: progress.progressPercentage / 100,
+                                    backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      progress.isCompleted ? Colors.green : Colors.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${progress.progressPercentage.toStringAsFixed(0)}%',
+                                    style: const TextStyle(fontSize: 12, color:Colors.white),
+                                  ),
+                                ],
                               ),
+                            ),
 
-                              // КНОПКА ТАЙМЕРА
-                              IconButton(
-                                icon: const Icon(Icons.timer, color: Colors.orange),
-                                onPressed: () => _startRestTimer(index),
-                                tooltip: 'Таймер',
-                              ),
-                                ] else ...[
-                                  IconButton(
+                            const SizedBox(width: 12),
+
+                            // КНОПКИ ДЕЙСТВИЙ
+                            if (!progress.isCompleted) ... [
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    if (_shouldShowTimer(exercise)) ...[
+                                    // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
+                                    IconButton(
                                       onPressed: progress.isCompleted
-                                      ? null
-                                      : () => _completeSet(index),
+                                          ? null
+                                          : () => _completeSet(index),
                                       icon: Icon(
                                         Icons.check_circle,
-                                        color: progress.isCompleted ? Colors.grey : Colors.green,
+                                        color: progress.isCompleted ? Colors.grey: Colors.green,
                                       ),
-                                    tooltip: 'Завершить подход',
-                                  ),
-                            ],
+                                      tooltip: 'Завершить подход',
+                                    ),
+
+                                    // КНОПКА ТАЙМЕРА
+                                    IconButton(
+                                      icon: const Icon(Icons.timer, color: Colors.orange),
+                                      onPressed: () => _startRestTimer(index),
+                                      tooltip: 'Таймер',
+                                    ),
+                                      ] else ...[
+                                        IconButton(
+                                            onPressed: progress.isCompleted
+                                            ? null
+                                            : () => _completeSet(index),
+                                            icon: Icon(
+                                              Icons.check_circle,
+                                              color: progress.isCompleted ? Colors.grey : Colors.green,
+                                            ),
+                                          tooltip: 'Завершить подход',
+                                        ),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ],
-                        ),
+                        ],
                       ),
-                    ],
-                  ],
-                ),
               ],
             ),
           ),
@@ -499,8 +530,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   child: Center(
                     child: Icon(
                       Icons.check_circle_outline_sharp,
-                      size: 150,
-                      color: Colors.green.withOpacity(0.3),
+                      size: 110,
+                      color: Colors.green.withOpacity(0.4),
                     ),
                   ),
                 ),
@@ -1130,7 +1161,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       onChanged: (value){
                         setState(() {
                           selectedTime = (value/10).round()*10;
-                          print('Значение состояние таймера: ${selectedTime}');
                         });
                       },
                     ),
@@ -1361,6 +1391,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   reps: progress.totalReps,
                   restTime: progress.exercise.restTime,
                   completedSets: setsData,
+                  isTimeBased: progress.exercise.isTimeBased,
+                  targetSeconds: progress.exercise.targetSeconds,
                 ));
               }
 
@@ -1608,6 +1640,47 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     );
 
     return result ?? false;
+  }
+
+  // ЗАВЕРШЕНИЕ ПОДХОДА НА ВРЕМЯ
+  Future<void> _completeTimeBasedSet(int index, int elepsedSeconds) async {
+    final progress = _exercisesProgress[index];
+
+    if (elepsedSeconds == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Запустите секундомер и выполните упражнение'),
+            backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      // Сохраняем время как "повторения" для совместимости
+      progress.addCompletedSet(elepsedSeconds, progress.currentWeight);
+    });
+
+    await _saveSession();
+
+    // Остальная логика — такая же как в _completeSet
+    final exercise = progress.exercise;
+    final isLastSet = progress.completedSetsCount >= exercise.sets;
+
+    if (isLastSet && exercise.isInAnyCircle) {
+      final allDone = _exercisesProgress
+          .where((p) => p.exercise.circleNumber == exercise.circleNumber)
+          .every((p) => p.isCompleted);
+
+      if (allDone) {
+        _showCircleRestTimer (exercise.circleNumber);
+        return;
+      }
+    }
+    // предложение отдыха после завершения подхода
+    if (progress.remainingSets > 0) {
+      _startRestTimer(index);
+    }
   }
 
   // РЕДАКТИРОВАНИЕ ВЕСА ЧЕРЕЗ ДИАЛОГ

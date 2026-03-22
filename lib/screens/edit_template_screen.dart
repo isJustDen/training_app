@@ -291,6 +291,18 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (exercise.isTimeBased)
+              Row(
+                children: [
+                  Icon(Icons.timer_rounded, size: 12, color: Colors.orange),
+                  const SizedBox(width: 4),
+                  Text(
+                      '${exercise.sets} подх. по ${exercise.targetSeconds} сек',
+                    style: const TextStyle(color: Colors.orange),
+                  ),
+                ],
+              )
+            else
             Text('${exercise.sets}х${exercise.reps} по ${exercise.weight}кг'),
             if(exercise.isInAnyCircle)
               Text(
@@ -619,9 +631,6 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     final updatedTemplate = _template.copyWith(
       updatedAt: DateTime.now(),
     );
-
-    // ЗДЕСЬ ПОЗЖЕ БУДЕМ СОХРАНЯТЬ В БАЗУ ДАННЫХ
-    print('Сохранено ${_template.name}');
 
     // ВОЗВРАЩАЕМСЯ НАЗАД
     Navigator.pop(context, updatedTemplate);

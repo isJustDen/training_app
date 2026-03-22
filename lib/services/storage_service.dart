@@ -40,7 +40,6 @@ class StorageService {
     // Сохраняем строку в SharedPreferences
     await prefs.setString(_templatesKey, jsonString);
 
-    print('Сохранено ${templates.length} шаблонов');
   }
 
   // ЗАГРУЗКА СПИСКА ШАБЛОНОВ
@@ -53,7 +52,6 @@ class StorageService {
 
     // ЕСЛИ ДАННЫХ НЕТ (первый запуск)
     if (jsonString == null){
-      print('Нет сохранёных данных, создаём начальные шаблоны');
       return _getDefaultTemplates();
     }
 
@@ -67,7 +65,6 @@ class StorageService {
       .map((item) => WorkoutTemplate.fromMap(item))
       .toList();
 
-      print('Загружено ${templates.length} шаблонов');
       return templates;
     } catch (e){
       // ЕСЛИ ОШИБКА ПАРСИНГА
@@ -310,7 +307,6 @@ class StorageService {
     final prefs = await _prefs;
     await prefs.remove(_templatesKey);
     await prefs.remove(_historyKey);
-    print('Все данные очищены');
   }
 
   // СОХРАНЕНИЕ ИСТОРИИ ТРЕНИРОВОК
@@ -318,7 +314,6 @@ class StorageService {
     final prefs = await _prefs;
     final historyJson = history.map((h) => h.toMap()).toList();
     await prefs.setString(_historyKey, jsonEncode(historyJson));
-    print('Сохранено ${history.length} записей истории');
   }
 
   // ЗАГРУЗКА ИСТОРИИ ТРЕНИРОВОК
@@ -334,7 +329,6 @@ class StorageService {
       final List<dynamic> data = jsonDecode(historyJson);
       return data.map((item) => WorkoutHistory.fromMap(item)).toList();
     } catch (e) {
-      debugPrint('Ошибка загрузки истории ${e}');
       return [];
     }
   }
@@ -364,14 +358,12 @@ class StorageService {
     }).toList();
 
       await saveHistory(updatedHistory);
-      print('История упражнения "$exerciseName" очищена');
   }
 
   // ОЧИСТИТЬ ТОЛЬКО ИСТОРИЮ ТРЕНИРОВОК (шаблоны не трогаем)
   static Future<void> clearHistoryOnly() async {
     final prefs = await _prefs;
     await prefs.remove(_historyKey);
-    print('История тренировок очищена');
   }
 
   // ОБНОВИТЬ ВЕСА УПРАЖНЕНИЙ В ШАБЛОНЕ
@@ -400,7 +392,6 @@ class StorageService {
       }).toList();
 
     await saveTemplates(updatedTemplates);
-    print('Веса обновленыв шаблоне');
   }
 //------------------------------СОСТОЯНИЕ ТЕКУЩЕЙ СЕССИИ--------------------------------------------//
   // СОХРАНИТЬ текущую сессию

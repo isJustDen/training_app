@@ -47,17 +47,13 @@ class _StatsScreenState extends State<StatsScreen>{
     _workoutHistory = history
         .where((workout) => workout.date.isAfter(cutoffDate))
         .toList();
-    print('история загружена: ${_workoutHistory.length} тренировок');
-
     // 3. ПОЛУЧАЕМ ТЕКУЩИЕ УПРАЖНЕНИЯ
     List<Exercise> currentExercise;
 
     if (widget.currentExercises != null && widget.currentExercises!.isNotEmpty){
       currentExercise = widget.currentExercises!;
-      print('Используем ${currentExercise.length} упражнений и шаблонов');
     } else {
       currentExercise = _getCurrentExercisesFromLastWorkout();
-      print('Используем ${currentExercise.length} упражнений из истории');
     }
 
     // 4. РАССЧИТЫВАЕМ СТАТИСТИКУ
@@ -66,9 +62,7 @@ class _StatsScreenState extends State<StatsScreen>{
           history: _workoutHistory,
           currentExercises: currentExercise
       );
-      print('Статистика расчитана для ${_exerciseStats.length} упражнений');
     } else {
-      print('Нет упражнений для расчёта статистики');
       _exerciseStats = {};
     }
 
@@ -406,8 +400,10 @@ class _StatsScreenState extends State<StatsScreen>{
 
                 //СРЕДНИЙ ВЕС
                 _buildStatIndicator(
-                  title: 'Средний вес',
-                  value: '${stats.averageWeight} кг',
+                  title: stats.isTimeBased ? 'Среднее время': 'Средний вес',
+                  value: stats.isTimeBased
+                      ? _formatSeconds(stats.averageWeight.toInt())
+                      :'${stats.averageWeight} кг',
                   color: Colors.blue,
                   icon: Icons.fitness_center,
                 ),
@@ -502,6 +498,15 @@ class _StatsScreenState extends State<StatsScreen>{
     return Colors.grey;
   }
 
+  // Форматирует секунды в читаемый вид: 90 → "1:30"
+  String _formatSeconds(int seconds){
+    if (seconds <= 0) return '0 секунд';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    if (m == 0) return '${s} сек';
+    if (s == 0) return '${m} мин';
+    return '${m}: ${s.toString().padLeft(2, '0')}';
+  }
 }
 
 

@@ -36,8 +36,7 @@ class HistoryService {
       }
 
       return results;
-      } catch (e) {
-        print('Ошибка при получении истории упражнений: $e');
+      } catch (_) {
       return [];
       }
     }

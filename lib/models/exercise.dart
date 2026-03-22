@@ -18,6 +18,9 @@ class Exercise {
 
   List <MuscleGroup> muscleGroups;
 
+  bool isTimeBased; // true = на время, false = на повторения (по умолчанию)
+  int targetSeconds;
+
   // КОНСТРУКТОР
   Exercise({
     required this.id,
@@ -31,6 +34,8 @@ class Exercise {
     this.circleOrder = 0,
     List<Map<String, dynamic>>? completedSets,
     this.muscleGroups = const[],
+    this.isTimeBased = false,
+    this.targetSeconds = 30,
   }) : completedSets = completedSets ?? [];
 
 // МЕТОД ДЛЯ КОПИРОВАНИЯ С ИЗМЕНЕНИЯМИ
@@ -46,6 +51,8 @@ class Exercise {
     int? circleOrder,
     List<Map<String, dynamic>>? completedSets,
     List<MuscleGroup> ? muscleGroups,
+    bool? isTimeBased,
+    int? targetSeconds,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -59,6 +66,8 @@ class Exercise {
       circleOrder: circleOrder ?? this.circleOrder,
       completedSets: completedSets ?? this.completedSets,
       muscleGroups: muscleGroups ?? this.muscleGroups,
+      isTimeBased: isTimeBased ?? this.isTimeBased,
+      targetSeconds: targetSeconds ?? this.targetSeconds,
     );
   }
 
@@ -77,12 +86,15 @@ class Exercise {
       'circleNumber':circleNumber,
       'completedSets': completedSets,
       'muscleGroups': muscleGroups.map((g) => g.name).toList(),
+      'isTimeBased': isTimeBased,
+      'targetSeconds': targetSeconds,
       };
     }
 
 // ФАБРИЧНЫЙ КОНСТРУКТОР ДЛЯ СОЗДАНИЯ ИЗ MAP
 // factory - специальный конструктор, может возвращать кэшированные экземпляры
   factory Exercise.fromMap(Map<String, dynamic> map){
+    print('=== fromMap: ${map}');
     // ОБРАТНАЯ СОВМЕСТИМОСТЬ — если поля нет в старых данных, берём пустой список
     List<MuscleGroup> groups = [];
     if (map['muscleGroups'] != null) {
@@ -110,6 +122,8 @@ class Exercise {
           (map['completedSets']as List?)?.map((s)=> Map<String,dynamic>.from(s)) ?? [],
       ),
       muscleGroups: groups,
+      isTimeBased: map['isTimeBased'] ?? false,
+      targetSeconds: map['targetSeconds'] ?? 30,
     );
   }
 

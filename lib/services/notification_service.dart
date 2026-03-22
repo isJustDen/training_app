@@ -46,8 +46,6 @@ class NotificationService {
 
     // СОЗДАЕМ КАНАЛ УВЕДОМЛЕНИЙ ДЛЯ ANDROID
     await _createNotificationChannel();
-
-    print('Сервис уведомлений инициализирован');
   }
 
   // СОЗДАНИЕ КАНАЛА УВЕДОМЛЕНИЙ (только для Android)
@@ -88,8 +86,6 @@ class NotificationService {
       badge: true,
       sound: true,
     );
-
-    print('Разрешение: Android = ${androidGranted ?? 'N/A'}. ios = ${iosGranted ?? 'N/A'}');
     return (androidGranted ?? true) && (iosGranted ?? true);
   }
 
@@ -108,7 +104,6 @@ class NotificationService {
 
       // ПРОВЕРЯЕМ, ВКЛЮЧЕНЫ ЛИ УВЕДОМЛЕНИЯ
       if (!settingsProvider.settings.notificationsEnabled){
-        print('Уведомления отключены в настройках');
         return;
       }
 
@@ -149,9 +144,7 @@ class NotificationService {
         notificationDetails,   // Детали
       );
 
-      print('Уведомление показано: $title');
-    } catch (e) {
-      print('Ошибка показа уведомления: $e');
+    } catch (_) {
     }
   }
 
@@ -170,7 +163,6 @@ class NotificationService {
 
       // ПРОВЕРЯЕМ, ВКЛЮЧЕНЫ ЛИ УВЕДОМЛЕНИЯ
       if (!settingsProvider.settings.notificationsEnabled){
-        print('Уведомления отключены в настройках');
         return;
       }
 
@@ -202,24 +194,19 @@ class NotificationService {
         notificationDetails,
       );
 
-      print('🏁 Уведомление о тренировке показано');
-    } catch (e) {
-      print('❌ Ошибка показа уведомления о тренировке: $e');
+    } catch (_) {
     }
   }
 
 
   // ОБРАБОТЧИК НАЖАТИЯ НА УВЕДОМЛЕНИЕ
   static void _onNotificationTapped(NotificationResponse response) {
-    print('Нажато уведомление: ${response.id}');
 
     // ЗДЕСЬ МОЖНО ДОБАВИТЬ ЛОГИКУ ПЕРЕХОДА В ПРИЛОЖЕНИЕ
     // Например, открыть экран тренировки
   }
-
   // ОЧИСТИТЬ ВСЕ УВЕДОМЛЕНИЯ
   Future<void> clearAllNotifications() async {
     await _notificationsPlugin.cancelAll();
-    print('🗑️ Все уведомления очищены');
   }
 }

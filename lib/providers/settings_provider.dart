@@ -28,10 +28,8 @@ class SettingsProvider extends ChangeNotifier{
             Map<String, dynamic>.from(jsonDecode(settingsJson));
         _settings = AppSettings.fromMap(settingsMap);
         notifyListeners(); // Уведомляем подписчиков об изменениях
-        print('Настройки ЗАГРУЖЕНЫ $_settings');
       }
-    } catch (e) {
-      print('ОШИБКА загрузки настроек $e');
+    } catch (_) {
     }
   }
 
@@ -41,9 +39,7 @@ class SettingsProvider extends ChangeNotifier{
       final prefs = await StorageService.getPrefs();
       final settingsJson = jsonEncode(_settings.toMap());
       await prefs.setString(_settingsKey, settingsJson);
-      print('Настройки СОХРАНЕНЫ: $_settings');
-    } catch (e) {
-      print('ОШИБКА при сохранении настроек $e');
+    } catch (_) {
     }
   }
 
