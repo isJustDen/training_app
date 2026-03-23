@@ -24,7 +24,7 @@ class SoundService {
   }
 
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА УСПЕШНОГО СЕКУНДОМЕРА
-  static Future<void> playTimerSoundSecundomer(BuildContext context) async {
+  static Future<void> playTimerSoundStopwatch(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
     await _playSound('sounds/stopwatch_beep.mp3');
   }
