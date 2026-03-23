@@ -113,4 +113,30 @@ class HistoryService {
     final progress = ((currentReps - previousReps)/previousReps)*100;
     return double.parse(progress.toStringAsFixed(1));
   }
+
+  // ПОЛУЧИТЬ ПОЛНУЮ ИСТОРИЮ С ДАТАМИ ДЛЯ ОДНОГО УПРАЖНЕНИЯ
+  static Future<List<Map<String, dynamic>>> getFullExerciseHistory(
+      String exerciseName,
+      ) async {
+    try {
+      final history = await StorageService.loadHistory();
+      history.sort((a, b) => b.date.compareTo(a.date));
+
+      List<Map<String, dynamic>> result = [];
+
+      for (var workout in history) {
+        for (var exercise in workout.exercises) {
+          if (exercise.name == exerciseName) {
+            result.add({
+              'date': workout.date,
+              'exercise': exercise,
+            });
+          }
+        }
+      }
+      return result;
+    } catch (_) {
+      return [];
+    }
+  }
 }

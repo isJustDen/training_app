@@ -1,5 +1,6 @@
 //screens/stats_screen.dart
 
+import 'package:fitflow/services/history_service.dart';
 import 'package:flutter/material.dart';
 import '../models/exercise.dart';
 import '../services/storage_service.dart';
@@ -28,6 +29,11 @@ class _StatsScreenState extends State<StatsScreen>{
 
   // ПЕРИОД ДЛЯ ФИЛЬТРАЦИИ (дни)
   int _filterDays = 30;
+
+  // ИСТОРИЯ ПО КАЖДОМУ УПРАЖНЕНИЮ (для раскрывающегося списка)
+  Map<String, List<Map<String, dynamic>>> _exerciseHistory = {};
+  Set<String> _expandedExercises = {}; // КАКИЕ КАРТОЧКИ РАСКРЫТЫ
+
 
   @override
   void initState(){
@@ -64,6 +70,13 @@ class _StatsScreenState extends State<StatsScreen>{
       );
     } else {
       _exerciseStats = {};
+    }
+
+    // 5. ЗАГРУЖАЕМ ИСТОРИЮ ДЛЯ КАЖДОГО УПРАЖНЕНИЯ
+    _exerciseHistory = {};
+    for (var exercise in currentExercise) {
+      _exerciseHistory [exercise.name] =
+          await HistoryService.getFullExerciseHistory(exercise.name);
     }
 
     setState(() => _isLoading = false);
@@ -353,100 +366,152 @@ class _StatsScreenState extends State<StatsScreen>{
 
   // КАРТОЧКА СТАТИСТИКИ УПРАЖНЕНИЯ
   Widget _buildExerciseStatsCard(String exerciseName, ExerciseStats stats){
+    final isExpanded = _expandedExercises.contains(exerciseName);
+    final history = _exerciseHistory[exerciseName] ?? [];
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // НАЗВАНИЕ УПРАЖНЕНИЯ + КНОПКА УДАЛЕНИЯ
-            Row(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child:
-                  Text(
-                  exerciseName,
-                    style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                // НАЗВАНИЕ УПРАЖНЕНИЯ + КНОПКА УДАЛЕНИЯ
+                Row(
+                  children: [
+                    Expanded(child:
+                    Text(
+                      exerciseName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    ),
+
+                    // КНОПКА СБРОСА ДАННЫХ УПРАЖНЕНИЯ
+                    IconButton(
+                      onPressed: () => _showClearExerciseDialog(exerciseName),
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      color: Colors.red.shade300,
+                      tooltip: 'Сбросить данные упражнения',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                // КНОПКА РАСКРЫТИЯ ИСТОРИИ
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (isExpanded) {
+                        _expandedExercises.remove(exerciseName);
+                      } else {
+                        _expandedExercises.add(exerciseName);
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'История',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          isExpanded
+                            ?Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: Colors.blue.shade700,
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
-                // КНОПКА СБРОСА ДАННЫХ УПРАЖНЕНИЯ
-                IconButton(
-                    onPressed: () => _showClearExerciseDialog(exerciseName),
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    color: Colors.red.shade300,
-                    tooltip: 'Сбросить данные упражнения',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-            // ПОКАЗАТЕЛИ СТАТИСТИКИ
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // ЭФФЕКТИВНОСТЬ
-                _buildStatIndicator(
-                  title: 'Эффективность',
-                  value: '${stats.efficiency}%',
-                  color: _getEfficiencyColor(stats.efficiency),
-                  icon: Icons.trending_up,
+                // ПОКАЗАТЕЛИ СТАТИСТИКИ
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // ЭФФЕКТИВНОСТЬ
+                    _buildStatIndicator(
+                      title: 'Эффективность',
+                      value: '${stats.efficiency}%',
+                      color: _getEfficiencyColor(stats.efficiency),
+                      icon: Icons.trending_up,
+                    ),
+
+                    //СРЕДНИЙ ВЕС
+                    _buildStatIndicator(
+                      title: stats.isTimeBased ? 'Среднее время': 'Средний вес',
+                      value: stats.isTimeBased
+                          ? _formatSeconds(stats.averageWeight.toInt())
+                          :'${stats.averageWeight} кг',
+                      color: Colors.blue,
+                      icon: Icons.fitness_center,
+                    ),
+
+                    // ПРОГРЕСС
+                    _buildStatIndicator(
+                      title: 'Прогресс',
+                      value: '${stats.progress}%',
+                      color: _getProgressColor(stats.progress),
+                      icon: stats.progress >=0
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                    ),
+                  ],
                 ),
 
-                //СРЕДНИЙ ВЕС
-                _buildStatIndicator(
-                  title: stats.isTimeBased ? 'Среднее время': 'Средний вес',
-                  value: stats.isTimeBased
-                      ? _formatSeconds(stats.averageWeight.toInt())
-                      :'${stats.averageWeight} кг',
-                  color: Colors.blue,
-                  icon: Icons.fitness_center,
-                ),
-
-                // ПРОГРЕСС
-                _buildStatIndicator(
-                  title: 'Прогресс',
-                  value: '${stats.progress}%',
-                  color: _getProgressColor(stats.progress),
-                  icon: stats.progress >=0
-                      ? Icons.arrow_upward
-                      : Icons.arrow_downward,
-                ),
-              ],
-            ),
-
-            // ЛИНЕЙНЫЙ ИНДИКАТОР ЭФФЕКТИВНОСТИ
-            const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: stats.efficiency/100,
-              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getEfficiencyColor(stats.efficiency),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('0%', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                Text(
-                  'Эффективность: ${stats.efficiency}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _getEfficiencyColor(stats.efficiency),
-                    fontWeight: FontWeight.bold,
+                // ЛИНЕЙНЫЙ ИНДИКАТОР ЭФФЕКТИВНОСТИ
+                const SizedBox(height: 16),
+                LinearProgressIndicator(
+                  value: stats.efficiency/100.clamp(0.0, 1.0),
+                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _getEfficiencyColor(stats.efficiency),
                   ),
                 ),
-                Text('200%', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('0%', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Эффективность: ${stats.efficiency}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _getEfficiencyColor(stats.efficiency),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text('200%', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+
+          // РАСКРЫВАЮЩАЯСЯ ИСТОРИЯ
+          if (isExpanded) _buildHistoryList(history, stats.isTimeBased),
+        ],
       ),
     );
   }
@@ -481,6 +546,196 @@ class _StatsScreenState extends State<StatsScreen>{
         ),
       ],
     );
+  }
+
+  // СПИСОК ИСТОРИЧЕСКИХ ЗАПИСЕЙ
+  Widget _buildHistoryList(
+      List<Map<String, dynamic>> history, bool isTimeBased) {
+    if(history.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            'История пуста',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ЗАГОЛОВОК ТАБЛИЦЫ
+          Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(
+              children: [
+                const Icon(Icons.history, size: 14, color: Colors.grey),
+                const SizedBox(width: 6),
+
+                Text(
+                  'История записей',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // СТРОКИ ИСТОРИИ
+          ...history.asMap().entries.map((entry) {
+            final index = entry.key;
+            final record = entry.value;
+            final date = record['date'] as DateTime;
+            final exercise = record['exercise'] as Exercise;
+            final isEven = index % 2 == 0;
+
+            return _buildHistoryRow(date, exercise, isTimeBased, isEven);
+          }),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  // СТРОКА ИСТОРИИ
+  Widget _buildHistoryRow(
+      DateTime date, Exercise exercise, bool isTimeBased, bool isEven,){
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Форматируем дату
+    final dateStr =
+      '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+
+    // Данные подходов
+    final hasSets = exercise.completedSets.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: isEven
+        ? colorScheme.surfaceVariant.withOpacity(0.3)
+        : Colors.transparent,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // СТРОКА 1: ДАТА + КРАТКОЕ РЕЗЮМЕ
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  dateStr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue.shade700,
+                    ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // ПОДХОДЫ И ИТОГ
+              if (isTimeBased) ... [
+                Icon(Icons.timer_outlined,
+                  size: 14, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Text(
+                  '${exercise.sets} подх.',
+                  style: TextStyle(
+                    fontSize: 13, color: colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(width: 8),
+                // Среднее время из подходов
+                if (hasSets) ...[
+                  Text(
+                    '⌀ ${_formatSeconds(_avgSetTime(exercise))}',
+                    style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ] else ...[
+                Icon(Icons.fitness_center,
+                  size: 14, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Text(
+                  '${exercise.sets} подх. × ${exercise.weight.toStringAsFixed(1)} кг',
+                    style: TextStyle(
+                      fontSize: 13, color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ],
+          ),
+          // СТРОКА 2: ДЕТАЛИ ПОДХОДОВ (если есть)
+          if (hasSets) ... [
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: exercise.completedSets.asMap().entries.map((e) {
+                final i = e.key;
+                final set = e.value;
+                final reps = set['reps'] as int;
+                final weight = (set['weight'] as num).toDouble();
+
+                final label = isTimeBased
+                    ? '${i+1}: ${_formatSeconds(reps)}'
+                    : '${i + 1}: ${reps}×${weight.toStringAsFixed(1)}кг';
+                return Container(
+                  padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: colorScheme.outline.withOpacity(0.5)),
+                  ),
+                  child: Text(label,
+                    style: const TextStyle(fontSize: 11)),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+
+
+
+
+
+  }
+
+  // СРЕДНЕЕ ВРЕМЯ ПОДХОДА
+  int _avgSetTime(Exercise exercise) {
+    if (exercise.completedSets.isEmpty) return 0;
+    final total = exercise.completedSets
+      .map((s) => s['reps'] as int)
+      .fold(0, (a, b) => a+b);
+    return total ~/ exercise.completedSets.length;
   }
 
   // ЦВЕТ ДЛЯ ЭФФЕКТИВНОСТИ
