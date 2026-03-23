@@ -29,7 +29,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
 
   List<int> _selectedExerciseIndices = []; // Для multi-select
   bool _isSelectionMode = false; // Режим выбора упражнений для круга
-
+  bool _isCustomDay = false;
   @override
 
   void initState(){
@@ -41,6 +41,12 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
     // Заполняем контроллеры текущими значениями
     _nameController.text = _template.name;
     _dayController.text = _template.dayOfWeek;
+
+    _isCustomDay = _template.dayOfWeek.isNotEmpty &&
+      !_dayOptions
+        .where((o) => o['value'] != '__custom__')
+        .map((o) => o['value'] as String)
+        .contains(_template.dayOfWeek);
   }
 
   @override
@@ -79,9 +85,10 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           // ЗАГОЛОВОК И ОПИСАНИЕ
           _buildHeader(),
           const SizedBox(height: 24),
-
-          // ПОЛЯ ДЛЯ РЕДАКТИРОВАНИЯ
           _buildEditFields(),
+          const SizedBox(height: 24),
+          // ПОЛЯ ДЛЯ РЕДАКТИРОВАНИЯ
+          _buildDaySelector(),
           const SizedBox(height: 24),
 
           // СПИСОК УПРАЖНЕНИЙ
@@ -126,21 +133,6 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           }
         ),
         const SizedBox(height: 16),
-
-        // ДЕНЬ НЕДЕЛИ
-        TextField(
-          controller: _dayController,
-          decoration: InputDecoration(
-            labelText: 'День недели',
-            border:OutlineInputBorder(),
-            prefixIcon: Icon(Icons.calendar_today),
-          ),
-          onChanged: (value){
-            setState(() {
-              _template = _template.copyWith(dayOfWeek: value);
-            });
-          },
-        ),
       ],
     );
   }
@@ -746,6 +738,170 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
           ),
         ],
       ),
+    );
+  }
+
+  static const List<Map<String, dynamic>> _dayOptions = [
+    {'label' : 'Понедельник',     'icon': '1️⃣',    'value': 'Понедельник'},
+    {'label' : 'Вторник',         'icon': '2️⃣',    'value': 'Вторник'},
+    {'label' : 'Среда',           'icon': '3️⃣',    'value': 'Среда'},
+    {'label' : 'Четверг',         'icon': '4️⃣',    'value': 'Четверг'},
+    {'label' : 'Пятница',         'icon': '5️⃣',    'value': 'Пятница'},
+    {'label' : 'Суббота',         'icon': '6️⃣',    'value': 'Суббота'},
+    {'label' : 'Воскресенье',     'icon': '7️⃣',    'value': 'Воскресенье'},
+    {'label' : 'Каждый день',     'icon': '🏋️',    'value': 'Каждый день'},
+    {'label' : 'По будням',       'icon': '📅',    'value': 'По будням'},
+    {'label' : 'Через день',      'icon': '🔄',    'value': 'Через день'},
+    {'label' : 'Свой вариант',    'icon': '✏️',    'value': '__custom__'},
+  ];
+
+  Widget _buildDaySelector(){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: _showDayPicker,
+          borderRadius: BorderRadius.circular(4),
+          child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'День недели / расписание',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.calendar_today),
+                suffixIcon: Icon(Icons.arrow_drop_down),
+              ),
+            child: Text(
+                _isCustomDay
+                    ? (_template.dayOfWeek.isEmpty ? 'Свой вариант...' : _template.dayOfWeek)
+                    :(_template.dayOfWeek.isEmpty ? 'Выберите...' : _template.dayOfWeek),
+              style: TextStyle(
+                fontSize: 16,
+                color: _template.dayOfWeek.isEmpty
+                  ? Theme.of(context).colorScheme.onSurfaceVariant
+                  : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+
+        // ПОЛЕ СВОЕГО ВАРИАНТА — показывается только если выбран custom
+        if (_isCustomDay ) ... [
+          const SizedBox(height: 12),
+          TextField(
+            controller: _dayController,
+            autofocus: true, // сразу открывает клавиатуру
+            decoration: const InputDecoration(
+              labelText: 'Ваш вариант',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.edit),
+              hintText: 'Например пн/ср/пт',
+            ),
+            onChanged: (value){
+              setState(() {
+                _template = _template.copyWith(dayOfWeek: value);
+              });
+            },
+          ),
+        ]
+      ],
+    );
+  }
+
+  void _showDayPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.85,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                // ХЭНДЛ
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.outline,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    'Выберите расписание',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                // СПИСОК ВАРИАНТОВ
+                Expanded(
+                    child:ListView(
+                      controller: scrollController,
+                      children: [
+                        ...(_dayOptions.map((option) {
+                          final value = option['value'] as String;
+                          final isSelected = value != '__custom__' &&
+                              _template.dayOfWeek == value;
+
+                          return Column(
+                            children: [
+                              if (value == '__custom__')
+                                Divider(
+                                  height: 1,
+                                  color: Theme.of(context).colorScheme.outline.withOpacity(0.4),
+                                ),
+                              ListTile(
+                                leading: Text(
+                                  option['icon'] as String,
+                                  style:  const TextStyle(fontSize: 20),
+                                ),
+                                title: Text(option['label'] as String),
+                                trailing: isSelected
+                                    ? Icon(Icons.check_circle,
+                                    color: Theme.of(context).colorScheme.primary)
+                                    : null,
+                                onTap: (){
+                                  Navigator.pop(context);
+                                  if(value == '__custom__'){
+                                    // Очищаем и показываем поле ввода
+                                    setState(() {
+                                      _isCustomDay = true;
+                                      _dayController.text = '';
+                                      _template = _template.copyWith(dayOfWeek: '');
+                                    });
+                                  } else {
+                                    setState(() {
+                                      _isCustomDay = false;
+                                      _template = _template.copyWith(dayOfWeek: value);
+                                      _dayController.text = value;
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        })),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
