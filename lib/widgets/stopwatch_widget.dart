@@ -107,7 +107,7 @@ class _StopwatchWidgetState extends State<StopwatchWidget>
   void _onTargetReached() {
     if (!mounted) return;
     _targetReached = true;
-    SoundService.playTimerSound(context);
+    SoundService.playTimerSoundSecundomer(context);
     widget.onTarget?.call();
 
     _pulseController.repeat(reverse: true);

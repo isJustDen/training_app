@@ -23,6 +23,12 @@ class SoundService {
     await _playSound('sounds/timer_beep.mp3');
   }
 
+  // ВОСПРОИЗВЕДЕНИЕ ЗВУКА УСПЕШНОГО СЕКУНДОМЕРА
+  static Future<void> playTimerSoundSecundomer(BuildContext context) async {
+    if (!_isSoundEnabled(context)) return;
+    await _playSound('sounds/stopwatch_beep.mp3');
+  }
+
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
   static Future<void> playWorkoutCompleteSound(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
