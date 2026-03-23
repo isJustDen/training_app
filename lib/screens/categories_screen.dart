@@ -857,7 +857,7 @@ void _deleteCategory(WorkoutCategory category) {
           title:  const Text('Удалить категорию?'),
           content: Text(
             'Категория "${category.name}" будет удалена.'
-                'Тренировки останутся, но перейдут в раздел "Беза категории".',
+                'Тренировки останутся, но перейдут в раздел "Без категории".',
           ),
           actions: [
             TextButton(
@@ -869,6 +869,7 @@ void _deleteCategory(WorkoutCategory category) {
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
                 onPressed: () async {
+                  Navigator.pop(context);
                   setState(() => _categories.removeWhere((c) => c.id == category.id));
                   await StorageService.saveCategories(_categories);
                 },
