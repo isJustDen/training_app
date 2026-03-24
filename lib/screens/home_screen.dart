@@ -1,6 +1,7 @@
 //screens/home_screen.dart
 
 import 'package:fitflow/screens/categories_screen.dart';
+import 'package:fitflow/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'templates_screen.dart';
@@ -82,6 +83,11 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Лёгкая вибрация при переключении вкладки
     HapticFeedback.selectionClick();
+
+    // ЗВУК ТОЛЬКО ДЛЯ ВКЛАДОК "Тренировки" И "Статистика" (индексы 0 и 1)
+    if (index == 0 || index == 1){
+      SoundService.playTabSwitchSound(context);
+    }
   }
 
   // КОНФИГУРАЦИЯ ВКЛАДОК
@@ -96,29 +102,36 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build (BuildContext context){
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      // Убираем стандартный AppBar — у каждой вкладки свой
-      body: PageView(
-        controller: _pageController,
-        // onPageChanged — срабатывает при свайпе, синхронизирует NavigationBar
-        onPageChanged: (index) => setState(() => _currentIndex = index),
-        children: [
-          // ВКЛАДКА 1: ТРЕНИРОВКИ
-          const CategoriesScreen(),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (dipPop) async {
+        if (dipPop) return;
+        _showExitDialog(context);
+      },
+      child: Scaffold(
+        // Убираем стандартный AppBar — у каждой вкладки свой
+        body: PageView(
+          controller: _pageController,
+          // onPageChanged — срабатывает при свайпе, синхронизирует NavigationBar
+          onPageChanged: (index) => setState(() => _currentIndex = index),
+          children: [
+            // ВКЛАДКА 1: ТРЕНИРОВКИ
+            const CategoriesScreen(),
 
-          // ВКЛАДКА 2: СТАТИСТИКА
-          StatsScreen(currentExercises: _allExercises),
+            // ВКЛАДКА 2: СТАТИСТИКА
+            StatsScreen(currentExercises: _allExercises),
 
-          // ВКЛАДКА 3: ЗАМЕРЫ
-          const MeasurementsScreen(),
+            // ВКЛАДКА 3: ЗАМЕРЫ
+            const MeasurementsScreen(),
 
-          // ВКЛАДКА 4: НАСТРОЙКИ
-          const SettingsScreen(),
-        ],
+            // ВКЛАДКА 4: НАСТРОЙКИ
+            const SettingsScreen(),
+          ],
+        ),
+
+        // НИЖНЯЯ НАВИГАЦИЯ — Material 3 NavigationBar
+        bottomNavigationBar: _buildNavigationBar(colorScheme),
       ),
-
-      // НИЖНЯЯ НАВИГАЦИЯ — Material 3 NavigationBar
-      bottomNavigationBar: _buildNavigationBar(colorScheme),
     );
   }
 
@@ -141,6 +154,41 @@ class _HomeScreenState extends State<HomeScreen>
             selectedIcon: Icon(tab.icon, color: colorScheme.primary),
             label: tab.label
         )).toList(),
+    );
+  }
+
+  //МЕТОД ДИАЛОГА ВЫХОДА
+  void _showExitDialog(BuildContext context) async {
+    await SoundService.playAppExitSound(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.exit_to_app, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Выйти из приложения?'),
+          ],
+        ),
+        content: const Text('Вы уверены, что хотите выйти?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Остаться'),
+          ),
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                SystemNavigator.pop();
+              },
+              child: Text('Выйти'),
+          ),
+        ],
+      ),
     );
   }
 }

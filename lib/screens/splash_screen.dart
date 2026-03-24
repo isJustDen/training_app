@@ -1,7 +1,7 @@
 //screens/splash_screen.dart
 
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import 'package:fitflow/services/sound_service.dart';
 
 //СПЛЭШ СКРИН ДЛЯ ПРИЛОЖЕНИЯ
 
@@ -112,6 +112,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   //УПРАВЛЕНИЕ ПОСЛЕДОВАТЕЛЬНОСТЬЮ
   void _startSequence() async {
+
+    // ШАГ 0: ЗВУК ЗАПУСКА
+    if(mounted) {
+      SoundService.playAppStartSound(context);
+    }
+
     // ШАГ 1: Небольшая пауза перед началом (эффект накопления)
     await Future.delayed(const Duration(milliseconds: 200));
 

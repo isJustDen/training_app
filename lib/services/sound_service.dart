@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../providers/settings_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-
+//import 'package:vibration/vibration.dart';
 
 // СЕРВИС ДЛЯ УПРАВЛЕНИЯ ЗВУКОМ
 class SoundService {
@@ -34,6 +34,26 @@ class SoundService {
     if (!_isSoundEnabled(context)) return;
     await _playSound('sounds/workout_complete.mp3');
   }
+
+  // ЗВУК ЗАПУСКА ПРИЛОЖЕНИЯ
+  static Future<void> playAppStartSound(BuildContext context) async {
+    if (!_isSoundEnabled(context)) return;
+    HapticFeedback.vibrate();
+    await _playSound('sounds/app_start.mp3');
+  }
+
+  // ЗВУК ВЫХОДА ИЗ ПРИЛОЖЕНИЯ
+  static Future<void> playAppExitSound(BuildContext context) async {
+    if (!_isSoundEnabled(context)) return;
+    await _playSound('sounds/app_exit.mp3');
+  }
+
+// ЗВУК ПЕРЕКЛЮЧЕНИЯ ВКЛАДКИ (короткий, < 1 сек)
+  static Future<void> playTabSwitchSound(BuildContext context) async {
+    if (!_isSoundEnabled(context)) return;
+    await _playSound('sounds/tab_switch.mp3');
+  }
+
 
   // УНИВЕРСАЛЬНЫЙ МЕТОД ВОСПРОИЗВЕДЕНИЯ
   static Future<void> _playSound(String assetPath) async {
