@@ -51,7 +51,7 @@ class SettingsProvider extends ChangeNotifier{
   }
 
   // ПЕРЕКЛЮЧЕНИЕ ЗВУКА
-  Future<void> toogleSound() async {
+  Future<void> toggleSound() async {
     _settings = _settings.copyWith(soundEnabled: !_settings.soundEnabled);
     await saveSettings();
     notifyListeners();
@@ -68,6 +68,13 @@ class SettingsProvider extends ChangeNotifier{
     _settings = _settings.copyWith(
       notificationsEnabled: !_settings.notificationsEnabled
     );
+    await saveSettings();
+    notifyListeners();
+  }
+
+  // УНИВЕРСАЛЬНОЕ ОБНОВЛЕНИЕ НАСТРОЕК (принимает готовый объект)
+  Future<void> updateSettings (AppSettings newSettings) async {
+    _settings = newSettings;
     await saveSettings();
     notifyListeners();
   }

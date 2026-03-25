@@ -2,12 +2,14 @@
 
 import 'package:fitflow/models/workout_circle.dart';
 import 'package:fitflow/models/workout_session.dart';
+import 'package:fitflow/providers/settings_provider.dart';
 import 'package:fitflow/screens/workout_complete_screen.dart';
 import 'package:fitflow/utils/circle_utils.dart';
 import 'package:fitflow/widgets/stopwatch_widget.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/workout_template.dart';
 import '../models/workout_progress.dart';
 import '../services/notification_service.dart';
@@ -62,7 +64,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   Timer ? _dimTimer;
   bool _isDimmed = false;
-  static const int _dimAfterSeconds = 15;
+
+  int _dimAfterSeconds = 15;
+  bool _dimEnabled = true;
 
   // initState() - ВЫЗЫВАЕТСЯ ПРИ СОЗДАНИИ ВИДЖЕТА
   @override
@@ -72,7 +76,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_){
       if(mounted) setState(() {});
     });
-    _resetDimTimer();
   }
 
   // ИНИЦИАЛИЗАЦИЯ ТРЕНИРОВКИ
@@ -108,6 +111,15 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     _clockTimer?.cancel();
     _dimTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settings = Provider.of<SettingsProvider>(context, listen: false).settings;
+    _dimEnabled = settings.dimScreenEnabled;
+    _dimAfterSeconds = settings.dimAfterSeconds;
+    _resetDimTimer();
   }
 
   //МЕТОД ДЛЯ ЗАГРУЗКИ ИСТОРИИ
@@ -1920,9 +1932,10 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     if(_isDimmed){
       setState(() => _isDimmed = false);// снимаем затемнение при касании
     }
-    _dimTimer = Timer(const Duration(seconds: _dimAfterSeconds), () {
+    if (!_dimEnabled) return;
+
+    _dimTimer = Timer( Duration(seconds: _dimAfterSeconds), () {
       if (mounted) setState(() => _isDimmed = true);
     });
   }
-
 }

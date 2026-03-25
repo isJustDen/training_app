@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import '../providers/settings_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-//import 'package:vibration/vibration.dart';
 
 // СЕРВИС ДЛЯ УПРАВЛЕНИЯ ЗВУКОМ
 class SoundService {

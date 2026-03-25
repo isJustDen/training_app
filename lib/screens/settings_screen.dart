@@ -55,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
               trailing: Switch(
                   value: settings.soundEnabled,
                   onChanged: (value) async {
-                    await settingsProvider.toogleSound();
+                    await settingsProvider.toggleSound();
                   },
               ),
             ),
@@ -74,6 +74,11 @@ class _SettingsScreenState extends State<SettingsScreen>{
               ),
             ),
           ),
+          const SizedBox(height: 8),
+
+          // РАЗДЕЛ: ЭКРАН
+          _buildSectionHeader('Экран во время тренировки'),
+          _buildDimSettings(),
           const SizedBox(height: 8),
 
           // РАЗДЕЛ: ДАННЫЕ
@@ -143,6 +148,109 @@ class _SettingsScreenState extends State<SettingsScreen>{
             ),
           ],
         ),
+    );
+  }
+
+  //МЕТОД ДЛЯ ЗАТЕМНЕНИЯ ЭКРАНА
+  Widget _buildDimSettings() {
+    final settings = context.watch<SettingsProvider>().settings;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        children: [
+          // ПЕРЕКЛЮЧАТЕЛЬ ВКЛ/ВЫКЛ
+          SwitchListTile(
+            title: const Text('Затемнение экрана'),
+            subtitle: const Text('Экран тускнеет в паузе между подходами'),
+            secondary: Icon(
+              Icons.screen_lock_portrait_rounded,
+              color: settings.dimScreenEnabled
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            value: settings.dimScreenEnabled,
+            onChanged: (value) {
+              context.read<SettingsProvider>().updateSettings(
+                settings.copyWith(dimScreenEnabled: value),
+              );
+            },
+          ),
+
+          // СЛАЙДЕР ВРЕМЕНИ — только если затемнение включено
+          if(settings.dimScreenEnabled) ...[
+            const Divider(height: 1),
+            Padding(
+                padding: const EdgeInsetsGeometry.fromLTRB(16, 12, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.timer_outlined,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Задержка затемнения',
+                              style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                        // ТЕКУЩЕЕ ЗНАЧЕНИЕ
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${settings.dimAfterSeconds} сек',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                        value: settings.dimAfterSeconds.toDouble(),
+                        min: 5,
+                        max: 60,
+                        divisions: 11,
+                        label: '${settings.dimAfterSeconds} сек',
+                        onChanged: (value) {
+                          context.read<SettingsProvider>().updateSettings(
+                              settings.copyWith(dimAfterSeconds: value.round()),
+                          );
+                        }
+                    ),
+                    // ПОДСКАЗКИ ПО КРАЯМ
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '5 сек',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text(
+                          '60 сек',
+                          style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ],
+                ),
+            ),
+          ]
+        ],
+      ),
     );
   }
 }
