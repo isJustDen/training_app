@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exercise.dart';
 import '../models/workout_template.dart';
 import '../models/workout_history.dart';
+import 'exercise_database.dart';
 
 // КЛАСС ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ
 class StorageService {
@@ -439,4 +440,41 @@ class StorageService {
     final raw = categories.map((c) => jsonEncode(c.toMap())).toList();
     await prefs.setStringList(_categoriesKey, raw);
   }
+
+  // ОЧИСТИТЬ ВСЕ ДАННЫЕ
+  static Future<void> factoryReset() async {
+    final prefs = await _prefs;
+    await prefs.clear();
+  }
+
+  // СБРОСИТЬ ШАБЛОНЫ УПРАЖНЕНИЙ ДО ЗАВОДСКИХ
+  static Future<void> resetTemplatesToDefault() async {
+    final defaultTemplates = _getDefaultTemplates();
+    await saveTemplates(defaultTemplates);
+  }
+
+  // ОЧИСТИТЬ СТАТИСТИКУ (только историю)
+  static Future<void> clearStatsOnly() async{
+    await clearHistoryOnly();
+  }
+
+// УДАЛИТЬ УПРАЖНЕНИЕ ПОЛНОСТЬЮ (из шаблонов и истории)
+  static Future<void> deleteExerciseCompletely(String exerciseName) async {
+    // 1. Удаляем из истории
+    await clearExerciseHistory(exerciseName);
+
+    // 2. Удаляем из всех шаблонов
+    final templates = await loadTemplates();
+    final updatedTemplates = templates.map((template) {
+      final updatedExercises = template.exercises
+          .where((e) => e.name != exerciseName)
+          .toList();
+      return template.copyWith(exercises: updatedExercises);
+    }).toList();
+    await saveTemplates(updatedTemplates);
+
+    // 3. Удаляем из пользовательских упражнений (используем ExerciseDatabase)
+    await ExerciseDatabase.deleteUserExercise(exerciseName);
+  }
+
 }

@@ -201,6 +201,15 @@ class ExerciseDatabase {
     return await _loadUserExercises();
   }
 
+  // МЕТОД ДЛЯ УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЬСКОГО УПРАЖНЕНИЯ
+  static Future<void> deleteUserExercise(String exerciseName) async {
+    final userExercises = await _loadUserExercises();
+    final updatedExercises = userExercises
+        .where((e) => e.name != exerciseName)
+        .toList();
+    await _saveUserExercises(updatedExercises);
+  }
+
 }
 
 // ШАБЛОН УПРАЖНЕНИЯ — только название и мышцы, без параметров тренировки

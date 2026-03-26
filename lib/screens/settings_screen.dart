@@ -2,6 +2,7 @@
 
 import 'package:fitflow/screens/templates_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/storage_service.dart';
@@ -83,14 +84,37 @@ class _SettingsScreenState extends State<SettingsScreen>{
 
           // РАЗДЕЛ: ДАННЫЕ
           _buildSectionHeader('Данные'),
+
+          // КНОПКА ОЧИСТКИ СТАТИСТИКИ
           Card(
             child: ListTile(
-              leading: Icon(Icons.delete, color:Theme.of(context).colorScheme.error),
-              title: const Text('Очистить все данные'),
-              subtitle: const Text('Удалить все тренировки и настройки'),
-              onTap: _showClearDataDialog,
+              leading: Icon(Icons.assessment, color:Theme.of(context).colorScheme.error),
+              title: const Text('Очистить статистику'),
+              subtitle: const Text('Удалить историю тренировок (шаблоны сохранятся)'),
+              onTap: _showClearStatsDialog,
             ),
           ),
+
+          // КНОПКА СБРОСА ШАБЛОНОВ
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.refresh, color: Theme.of(context).colorScheme.error),
+              title: const Text('Сбросить шаблоны'),
+              subtitle: const Text('Восстановить заводские шаблоны тренировок'),
+              onTap: _showResetTemplatesDialog,
+            ),
+          ),
+
+          // КНОПКА ПОЛНОГО СБРОСА
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+              title: const Text('Сброс до заводских настроек'),
+              subtitle: const Text('Удалить ВСЕ данные и вернуть исходное состояние'),
+              onTap: _showFactoryResetDialog,
+            ),
+          ),
+
           // РАЗДЕЛ: О ПРИЛОЖЕНИИ
           _buildSectionHeader('О приложении'),
           Card(
@@ -120,15 +144,87 @@ class _SettingsScreenState extends State<SettingsScreen>{
     );
   }
 
-  // ДИАЛОГ ОЧИСТКИ ДАННЫХ
-  void _showClearDataDialog(){
+  // ДИАЛОГ ОЧИСТКИ СТАТИСТИКИ
+  void _showClearStatsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Очистить статистику?'),
+        content: const Text(
+            'Вся история тренировок будет удалена.\n'
+                'Шаблоны упражнений и настройки останутся.'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await StorageService.clearStatsOnly();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Статистика очищена'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Очистить'),
+          ),
+        ],
+      ),
+    );
+  }
+
+// ДИАЛОГ СБРОСА ШАБЛОНОВ
+  void _showResetTemplatesDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Сбросить шаблоны?'),
+        content: const Text(
+            'Все ваши шаблоны тренировок будут заменены на заводские.\n'
+                'История тренировок сохранится.'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await StorageService.resetTemplatesToDefault();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Шаблоны восстановлены'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Сбросить'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ДИАЛОГ ПОЛНОГО СБРОСА
+  void _showFactoryResetDialog(){
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Очистить все данные?'),
+          title: const Text('Полный сброс?'),
           content: const Text(
-              'Это действие удалит все тренировки, историю и настройки'
-                  'Восстановить данные будет невозможно.'
+              'ВНИМАНИЕ! Это действие:\n'
+                  '• Удалит ВСЕ тренировки и историю\n'
+                  '• Удалит ВСЕ настройки\n'
+                  '• Удалит пользовательские упражнения\n'
+                  '• Восстановит заводские шаблоны\n\n'
+                  'Восстановить данные будет невозможно!'
           ),
           actions: [
             TextButton(
@@ -136,20 +232,43 @@ class _SettingsScreenState extends State<SettingsScreen>{
                 child: const Text('Отмена'),
             ),
             ElevatedButton(
-              onPressed: () async{
+              onPressed: () async {
                 // ОЧИЩАЕМ ХРАНИЛИЩЕ
-                await StorageService.clearAllData();
+                await StorageService.factoryReset();
                 Navigator.pop(context);
+
+                // Перезапустить приложение (опционально)
+                // Можно показать диалог о перезапуске
+                showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Сброс выполнен'),
+                      content: const Text('Приложение будет перезапущено'),
+                      actions: [
+                        ElevatedButton(
+                            onPressed: (){
+                              // Выход из приложения
+                              SystemNavigator.pop();
+                              setState(() {});
+                            } ,
+                            child: const Text('Ок'),
+                        ),
+                      ],
+                    ),
+                );
               },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-              child: const Text('Очистить'),
+              child: const Text('Сбросить всё'),
             ),
           ],
         ),
     );
   }
+
+
 
   //МЕТОД ДЛЯ ЗАТЕМНЕНИЯ ЭКРАНА
   Widget _buildDimSettings() {
