@@ -94,7 +94,6 @@ class Exercise {
 // ФАБРИЧНЫЙ КОНСТРУКТОР ДЛЯ СОЗДАНИЯ ИЗ MAP
 // factory - специальный конструктор, может возвращать кэшированные экземпляры
   factory Exercise.fromMap(Map<String, dynamic> map){
-    print('=== fromMap: ${map}');
     // ОБРАТНАЯ СОВМЕСТИМОСТЬ — если поля нет в старых данных, берём пустой список
     List<MuscleGroup> groups = [];
     if (map['muscleGroups'] != null) {
@@ -102,8 +101,8 @@ class Exercise {
         try {
           // byName кидает исключение если такого значения нет — ловим его
           groups.add(MuscleGroup.values.byName(name.toString()));
-        } catch (_){
-
+        } catch (e){
+          print('ОШИБКА: === fromMap: ${map}');
         }
       }
     }

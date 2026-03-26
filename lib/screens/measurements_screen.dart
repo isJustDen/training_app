@@ -21,6 +21,8 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
   List<Measurement> _strengthMeasurements = [];
   List<Measurement> _physicalMeasurement = [];
   bool _isLoading = true;
+  int _compareFromIndex=0;
+  int _compareToIndex=1;
 
   @override
   void initState() {
@@ -93,37 +95,84 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
       return _buildEmptyState(type);
     }
 
-    final changes = MeasurementService.compareLatestTwo(measurements); // Считаем изменения между последними двумя замерами
-    final overall = MeasurementService.overallChange(changes); // Вычисляем среднее изменение по всем показателям
+    // Защита от выхода за пределы
+    final fromIdx = _compareFromIndex.clamp(0, measurements.length - 1);
+    final toIdx = _compareToIndex.clamp(
+        (fromIdx + 1).clamp(0, measurements.length-1 ),
+                  measurements.length-1);
+
+    for (final key in measurements[fromIdx].entries.keys) {
+      final newVal = measurements[fromIdx].entries[key]?.value;
+      final oldVal = measurements[toIdx].entries[key]?.value;
+      print('key: $key | new: $newVal | old: $oldVal');
+    }
+
+    // Считаем изменения между выбранными замерами
+    final changes = measurements.length >= 2
+                  ? MeasurementService.compareTwoMeasurements(measurements[fromIdx], measurements[toIdx])
+                  : <String, double> {};
+
+    final startIdx = toIdx;
+    final endIdx = fromIdx;
+
+    List<Measurement> selectedPeriod;
+    if (startIdx <= endIdx) {
+      selectedPeriod = measurements.sublist(startIdx, endIdx + 1);
+    } else {
+      // Если индексы перепутаны (хотя по логике не должны), меняем их местами
+      selectedPeriod = measurements.sublist(endIdx, startIdx + 1);
+    }
+    // Общая оценка за весь выбранный период
+    final trend = MeasurementService.overallTrend(selectedPeriod); // Вычисляем среднее изменение по всем показателям
 
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [
-        if (changes.isNotEmpty) _buildVerdictCard(overall, type),
+        // ВЫБОР ПЕРИОДА СРАВНЕНИЯ
+        if (measurements.length >= 2)
+          _buildPeriodSelector(measurements),
 
         const SizedBox(height: 8),
+
+        // КАРТОЧКА ОБЩЕЙ ОЦЕНКИ
+        if (changes.isNotEmpty) _buildTrendCard(trend, changes, measurements[fromIdx].date,
+            measurements[toIdx].date, type),
+
+        const SizedBox(height: 8),
+
+        // СПИСОК ЗАМЕРОВ
         ...measurements.asMap().entries.map((entry) {
           final index = entry.key;
           final m = entry.value;
 
-          final cardChanges = index == 0? changes : <String, double> {};
+          // Предыдущие значения для каждой карточки
+          final prevValues = MeasurementService.getPriviousValues(measurements, index);
 
-          return _buildMeasurementCard(m, cardChanges);
+          // Изменения показываем только для выбранного "from"
+          final cardChanges = index == fromIdx? changes : <String, double> {};
+
+          return _buildMeasurementCard(m, cardChanges, prevValues);
         }),
       ],
     );
   }
 
   //КАРТОЧКА ОБЩЕГО ПРОГРЕССА
-  Widget _buildVerdictCard(double overall, MeasurementType type) {
-    final isPositive = overall > 0;
+  Widget _buildTrendCard(double trend, Map<String, double> changes,
+      DateTime fromData, DateTime toData, MeasurementType type) {
+    final isPositive = trend > 0;
     final isStrength = type == MeasurementType.strength;
 
     final color = isPositive ? Colors.green : Colors.red;
     final icon = isPositive ? Icons.trending_up : Icons.trending_down;
-    final label = isPositive
-        ? '+${overall.toStringAsFixed(1)}%'
-        : '${overall.toStringAsFixed(1)}%';
+    final sign = isPositive ? '+' : '';
+
+    // Считаем сколько показателей улучшилось/ухудшилось
+    final improved = changes.values.where((v) => v > 0).length;
+    final decline = changes.values.where((v) => v<0).length;
+
+    String _fmt (DateTime d) =>
+        '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -134,32 +183,95 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color:color.withOpacity(0.3)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 32,),
-          const SizedBox(width: 12,),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            children: [
+              Icon(icon, color: color, size: 28,),
+              const SizedBox(width: 10,),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isStrength ? 'Силовой прогресс': 'Физический прогресс',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    Text(
+                      '${_fmt(toData)} → ${_fmt(fromData)}',
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+
+              // БОЛЬШАЯ ОЦЕНКА
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withOpacity(0.4)),
+                ),
+                child: Text(
+                  '$sign${trend.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (changes.length>1) ...[
+            const SizedBox(height: 10),
+            Row(
               children: [
-                Text(
-                  isStrength ? 'Силовой прогресс': 'Физический прогресс',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  'Относительно прошлого замера: $label',
-                  style: TextStyle(fontSize: 13, color: color),
-                ),
+                _buildMiniStat('↑ Улучшилось', improved, Colors.green),
+                const SizedBox(width: 12),
+                _buildMiniStat('↓ Упало', decline, Colors.red),
+                const SizedBox(width: 12),
+                _buildMiniStat('→ Без изменений',
+                    changes.length - improved-decline, Colors.grey),
               ],
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
+  //КАРТОЧКА ИНФОРМАЦИИ О ИЗМЕНЕНИИ
+  Widget _buildMiniStat(String label, int count, Color color){
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label,
+        style: TextStyle(
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text('$count',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: color)),
+        ),
+      ],
+    );
+  }
+
   //КАРТОЧКА ОДНОГО ЗАМЕРА
-  Widget _buildMeasurementCard(Measurement m, Map<String, double> changes){
+  Widget _buildMeasurementCard(Measurement m, Map<String, double> changes,
+      Map<String, MeasurementEntry> prevValues){
     // Форматируем дату в формате ДД.ММ.ГГГГ
     final dateStr = '${m.date.day.toString().padLeft(2, '0')}.'
         '${m.date.month.toString().padLeft(2, '0')}.'
@@ -225,7 +337,7 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
                   children: m.entries.entries.take(3).map((e) {
                     // Берём первые 3 записи из Map entries
                     final change = changes[e.key];
-                    return _buildEntryChip(e.value, change);
+                    return _buildEntryChip(e.value, change, prevValues[e.key]);
                   }).toList(),
                 ),
 
@@ -249,7 +361,8 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
   }
 
   //ЧИП ОДНОГО ПОКАЗАТЕЛЯ
-  Widget _buildEntryChip(MeasurementEntry entry, double? change) {
+  Widget _buildEntryChip(MeasurementEntry entry, double? change,
+      MeasurementEntry? previous) {
     final hasChange = change != null && change != 0;
     final isPositive = (change ?? 0) > 0;
     final changeColor = isPositive ? Colors.green : Colors.red;
@@ -260,15 +373,28 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
         color: Theme.of(context).colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(8),
       ),
-      child:  Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            entry.reps != null
+            // ТЕКУЩЕЕ ЗНАЧЕНИЕ
+          entry.reps != null
                   ? '${entry.name}: ${entry.value.toStringAsFixed(1)}${entry.unit}×${entry.reps}'
                   : '${entry.name}: ${entry.value.toStringAsFixed(1)}${entry.unit}',
                 style: const TextStyle(fontSize: 11),
           ),
+
+          // ПРЕДЫДУЩЕЕ ЗНАЧЕНИЕ (серым)
+          if (previous != null) ...[
+            const SizedBox(width: 4),
+            Text(
+              '(б: ${previous.value.toStringAsFixed(1)}${previous.unit})',
+              style: TextStyle(
+                fontSize: 10,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
 
           // Если есть изменение - показываем процент
           if (hasChange) ...[
@@ -315,6 +441,135 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
           ),
         ],
       ),
+    );
+  }
+
+  //ВИДЖЕТ ВЫБОРА ПЕРИОДА
+  Widget _buildPeriodSelector(List<Measurement> measurements){
+    String _fromData(DateTime d) =>
+        '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+
+    return Card(
+      child: Padding(
+          padding: const EdgeInsetsGeometry.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.compare_arrows,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  'Период сравнения',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                // ВЫБОР "С" (более новый замер)
+                Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('С',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        const SizedBox(height: 4),
+                        _buildDateDropdown(
+                          measurements: measurements,
+                          selectedIndex: _compareFromIndex,
+                          maxIndex: measurements.length-2,
+                          onChanged: (i) => setState(() {
+                            _compareFromIndex = i;
+                            // "по" не может быть новее чем "с"
+                            if (_compareToIndex <= i){
+                              _compareToIndex = i + 1;
+                            }
+                          }),
+                        ),
+                      ],
+                    ),
+                ),
+
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.arrow_forward,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+
+                // ВЫБОР "ПО" (более старый замер)
+                Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('По',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        const SizedBox(height: 4),
+                          _buildDateDropdown(
+                          measurements: measurements,
+                          selectedIndex: _compareToIndex,
+                          minIndex: _compareFromIndex + 1,
+                          onChanged: (i) => setState(() =>
+                          _compareToIndex = i),
+                          ),
+                      ],
+                    ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateDropdown({
+    required List<Measurement> measurements,
+    required int selectedIndex,
+    int minIndex = 0,
+    int maxIndex = -1,
+    required ValueChanged<int> onChanged,
+  }) {
+    final effectiveMax =
+      maxIndex <0? measurements.length - 1 : maxIndex;
+
+    return DropdownButtonFormField <int>(
+        value: selectedIndex.clamp(minIndex, effectiveMax),
+        isDense: true,
+        decoration: InputDecoration(
+          contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        items: List.generate(measurements.length, (i) => i)
+            .where((i) => i >= minIndex && i <= effectiveMax)
+            .map((i) {
+              final d = measurements[i].date;
+              return DropdownMenuItem(
+                value: i,
+                child: Text(
+                    '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              );
+    }).toList(),
+        onChanged: (v) {
+          if (v != null) onChanged(v);
+        },
     );
   }
 

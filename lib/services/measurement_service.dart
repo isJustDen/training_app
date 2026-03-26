@@ -77,4 +77,46 @@ class MeasurementService {
     final sum = changes.values.fold(0.0, (a, b) => a+ b);
     return sum / changes.length;
   }
+
+  // СРАВНЕНИЕ ДВУХ КОНКРЕТНЫХ ЗАМЕРОВ (не только последних)
+  static Map<String, double> compareTwoMeasurements(
+      Measurement newer, Measurement older){
+    final result = <String, double> {};
+    for (final key in newer.entries.keys){
+      final newVal = newer.entries[key]?.value;
+      final oldVal = older.entries[key]?.value;
+      if(newVal != null && oldVal != null && oldVal != 0){
+        result[key] = (newVal - oldVal)/oldVal * 100;
+      }
+    }
+    return result;
+  }
+
+  // ОБЩАЯ ОЦЕНКА ПРОГРЕССА ЗА ПЕРИОД
+  static double overallTrend(List<Measurement> measurements) {
+    if (measurements.length < 2) return 0;
+
+    // Первый и последний в хронологическом порядке
+    final sorted = List<Measurement>.from(measurements)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    final first = sorted.first;
+    final last = sorted.last;
+
+    final changes = compareTwoMeasurements(last, first);
+    if (changes.isEmpty) return 0;
+
+    // Взвешенное среднее — даём больший вес показателям с большим изменением
+    final sum = changes.values.fold(0.0, (a, b) => a+b);
+    return sum / changes.length;
+  }
+
+  // ПОЛУЧИТЬ ПРЕДЫДУЩЕЕ ЗНАЧЕНИЕ ДЛЯ ПОКАЗАТЕЛЯ
+  static Map<String, MeasurementEntry> getPriviousValues(
+      List<Measurement> measurements, int currentIndex) {
+    if (currentIndex >= measurements.length -1 ) return {};
+
+    final previous = measurements[currentIndex+1];
+    return previous.entries;
+  }
 }
