@@ -9,11 +9,13 @@ import '../services/measurement_service.dart';
 class MeasurementDetailScreen  extends StatelessWidget{
   final Measurement measurement;
   final Map<String, double> changes;
+  final Map<String, MeasurementEntry> compareValues;
 
   const MeasurementDetailScreen({
     super.key,
     required this.measurement,
-    required this.changes
+    required this.changes,
+    required this.compareValues,
   });
 
   @override
@@ -145,6 +147,7 @@ class MeasurementDetailScreen  extends StatelessWidget{
   Widget _buildEntryRow(BuildContext context, String key, MeasurementEntry entry){
     // Ищем изменение для этого конкретного показателя
     final change = changes[key];
+    final compareValue = compareValues[key]; // Используем переданные значения
     final hasChange = change != null && change != 0;
     final isPositive = (change ?? 0) > 0;
     final changeColor = isPositive ? Colors.green : Colors.red;
@@ -183,13 +186,28 @@ class MeasurementDetailScreen  extends StatelessWidget{
                 color: changeColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Text(
-                '${isPositive ? '+' : ''}${change!.toStringAsFixed(1)}%',
-                style: TextStyle(
-                  color: changeColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                children: [
+                  // ПРЕДЫДУЩЕЕ ЗНАЧЕНИЕ (серым)
+                  if (compareValue != null) ...[
+                    Text(
+                      '(было: ${compareValue.value.toStringAsFixed(1)}${compareValue.unit})',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    '${isPositive ? '+' : ''}${change!.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      color: changeColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

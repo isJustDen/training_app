@@ -135,7 +135,7 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
         const SizedBox(height: 8),
 
         // КАРТОЧКА ОБЩЕЙ ОЦЕНКИ
-        if (changes.isNotEmpty) _buildTrendCard(trend, changes, measurements[fromIdx].date,
+        if (changes.isNotEmpty) buildTrendCard(trend, changes, measurements[fromIdx].date,
             measurements[toIdx].date, type),
 
         const SizedBox(height: 8),
@@ -145,20 +145,29 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
           final index = entry.key;
           final m = entry.value;
 
+          // ИЗМЕНЕНИЕ: получаем значения для сравнения из выбранного "старого" замера
+          Map<String, MeasurementEntry> compareValues = {};
+
+          // Если этот замер - выбранный "новый" (fromIdx),
+          // то показываем сравнение с "старым" (toIdx)
+          if (index == fromIdx) {
+            compareValues = measurements[toIdx].entries;
+          }
+
           // Предыдущие значения для каждой карточки
           final prevValues = MeasurementService.getPriviousValues(measurements, index);
 
           // Изменения показываем только для выбранного "from"
           final cardChanges = index == fromIdx? changes : <String, double> {};
 
-          return _buildMeasurementCard(m, cardChanges, prevValues);
+          return _buildMeasurementCard(m, cardChanges, prevValues, compareValues, index == fromIdx,);
         }),
       ],
     );
   }
 
   //КАРТОЧКА ОБЩЕГО ПРОГРЕССА
-  Widget _buildTrendCard(double trend, Map<String, double> changes,
+  Widget buildTrendCard(double trend, Map<String, double> changes,
       DateTime fromData, DateTime toData, MeasurementType type) {
     final isPositive = trend > 0;
     final isStrength = type == MeasurementType.strength;
@@ -270,8 +279,12 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
   }
 
   //КАРТОЧКА ОДНОГО ЗАМЕРА
-  Widget _buildMeasurementCard(Measurement m, Map<String, double> changes,
-      Map<String, MeasurementEntry> prevValues){
+  Widget _buildMeasurementCard(
+      Measurement m,
+      Map<String, double> changes,
+      Map<String, MeasurementEntry> prevValues,
+      Map<String, MeasurementEntry> compareValues, // Новый параметр
+      bool isSelectedForComparison, ){
     // Форматируем дату в формате ДД.ММ.ГГГГ
     final dateStr = '${m.date.day.toString().padLeft(2, '0')}.'
         '${m.date.month.toString().padLeft(2, '0')}.'
@@ -289,6 +302,7 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
               builder: (_) => MeasurementDetailScreen(
                 measurement: m,
                 changes: changes,
+                compareValues: isSelectedForComparison ? compareValues : prevValues,
               ),
             ),
           );
@@ -337,7 +351,10 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
                   children: m.entries.entries.take(3).map((e) {
                     // Берём первые 3 записи из Map entries
                     final change = changes[e.key];
-                    return _buildEntryChip(e.value, change, prevValues[e.key]);
+                    final compareValue = isSelectedForComparison
+                        ? compareValues[e.key]
+                        : prevValues[e.key];
+                    return _buildEntryChip(e.value, change, compareValue);
                   }).toList(),
                 ),
 
