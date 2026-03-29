@@ -1067,10 +1067,6 @@ void _deleteCategory(WorkoutCategory category) {
       updatedAt: DateTime.now(),
     );
 
-    final templates = await StorageService.loadTemplates();
-    templates.add(newTemplate);
-    await StorageService.saveTemplates(templates);
-
     if (mounted) {
       final result = await Navigator.push(
         context,
@@ -1078,7 +1074,12 @@ void _deleteCategory(WorkoutCategory category) {
             builder: (_) => EditTemplateScreen(template: newTemplate),
         ),
       );
-      if (result != null) _loadData();
+      if (result != null && mounted) {
+        final templates = await StorageService.loadTemplates();
+        templates.add(result);
+        await StorageService.saveTemplates(templates);
+        _loadData();
+      }
     }
   }
 
