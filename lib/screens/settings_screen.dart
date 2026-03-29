@@ -1,6 +1,7 @@
 //screens/settings_screen.dart
 
 import 'package:fitflow/screens/templates_screen.dart';
+import 'package:fitflow/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -23,108 +24,117 @@ class _SettingsScreenState extends State<SettingsScreen>{
     final settings = settingsProvider.settings;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Настройки'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // РАЗДЕЛ: ВНЕШНИЙ ВИД
-          _buildSectionHeader('Внешний вид'),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.dark_mode),
-              title: const Text('Тёмная тема'),
-              subtitle: const Text('Включить тёмный режим'),
-              trailing: Switch(
-                  value: settings.isDarkMode,
-                  onChanged: (value) async {
-                    await settingsProvider.toggleDarkMode();
-                  },
+      body: CustomScrollView(
+        slivers: [
+        AppHeader(title: 'Настройки', subtitle: 'Персонализация прилоежния'),
+
+        SliverToBoxAdapter(
+          child: ListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsetsGeometry.fromLTRB(16, 8, 16, 80),
+            children: [
+              // РАЗДЕЛ: ВНЕШНИЙ ВИД
+              _buildSectionHeader('Внешний вид'),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.dark_mode),
+                  title: const Text('Тёмная тема'),
+                  subtitle: const Text('Включить тёмный режим'),
+                  trailing: Switch(
+                    value: settings.isDarkMode,
+                    onChanged: (value) async {
+                      await settingsProvider.toggleDarkMode();
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-          // РАЗДЕЛ: Уведомления
-          _buildSectionHeader('Уведомления'),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.volume_up),
-              title: const Text('Звуковые оповещения'),
-              subtitle: const Text('Звук при завершении таймера или тренировки'),
-              trailing: Switch(
-                  value: settings.soundEnabled,
-                  onChanged: (value) async {
-                    await settingsProvider.toggleSound();
-                  },
+              // РАЗДЕЛ: Уведомления
+              _buildSectionHeader('Уведомления'),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.volume_up),
+                  title: const Text('Звуковые оповещения'),
+                  subtitle: const Text('Звук при завершении таймера или тренировки'),
+                  trailing: Switch(
+                    value: settings.soundEnabled,
+                    onChanged: (value) async {
+                      await settingsProvider.toggleSound();
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('Уведомления'),
-              subtitle: const Text('Уведомления о завершении таймера и тренировки'),
-              trailing: Switch(
-                value: settings.notificationsEnabled,
-                onChanged: (value) async {
-                  await settingsProvider.toggleNotifications();
-                },
+              const SizedBox(height: 8),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.notifications),
+                  title: const Text('Уведомления'),
+                  subtitle: const Text('Уведомления о завершении таймера и тренировки'),
+                  trailing: Switch(
+                    value: settings.notificationsEnabled,
+                    onChanged: (value) async {
+                      await settingsProvider.toggleNotifications();
+                    },
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(height: 8),
+
+              // РАЗДЕЛ: ЭКРАН
+              _buildSectionHeader('Экран во время тренировки'),
+              _buildDimSettings(),
+              const SizedBox(height: 8),
+
+              // РАЗДЕЛ: ДАННЫЕ
+              _buildSectionHeader('Данные'),
+
+              // КНОПКА ОЧИСТКИ СТАТИСТИКИ
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.assessment, color:Theme.of(context).colorScheme.error),
+                  title: const Text('Очистить статистику'),
+                  subtitle: const Text('Удалить историю тренировок (шаблоны сохранятся)'),
+                  onTap: _showClearStatsDialog,
+                ),
+              ),
+
+              // КНОПКА СБРОСА ШАБЛОНОВ
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.refresh, color: Theme.of(context).colorScheme.error),
+                  title: const Text('Сбросить шаблоны'),
+                  subtitle: const Text('Восстановить заводские шаблоны тренировок'),
+                  onTap: _showResetTemplatesDialog,
+                ),
+              ),
+
+              // КНОПКА ПОЛНОГО СБРОСА
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+                  title: const Text('Сброс до заводских настроек'),
+                  subtitle: const Text('Удалить ВСЕ данные и вернуть исходное состояние'),
+                  onTap: _showFactoryResetDialog,
+                ),
+              ),
+
+              // РАЗДЕЛ: О ПРИЛОЖЕНИИ
+              _buildSectionHeader('О приложении'),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.person_pin_circle_sharp, color:Theme.of(context).colorScheme.primary),
+                  title: const Text('Cделано при самостоятельном энтузиазме Denis S. (Andromeda)'),
+                  subtitle: const Text('Предложения и жалобы прнимаются по адресу den.work.zav@gmail.com.\nВсех благ!\nVersioN: 1.0.0'),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-
-          // РАЗДЕЛ: ЭКРАН
-          _buildSectionHeader('Экран во время тренировки'),
-          _buildDimSettings(),
-          const SizedBox(height: 8),
-
-          // РАЗДЕЛ: ДАННЫЕ
-          _buildSectionHeader('Данные'),
-
-          // КНОПКА ОЧИСТКИ СТАТИСТИКИ
-          Card(
-            child: ListTile(
-              leading: Icon(Icons.assessment, color:Theme.of(context).colorScheme.error),
-              title: const Text('Очистить статистику'),
-              subtitle: const Text('Удалить историю тренировок (шаблоны сохранятся)'),
-              onTap: _showClearStatsDialog,
-            ),
-          ),
-
-          // КНОПКА СБРОСА ШАБЛОНОВ
-          Card(
-            child: ListTile(
-              leading: Icon(Icons.refresh, color: Theme.of(context).colorScheme.error),
-              title: const Text('Сбросить шаблоны'),
-              subtitle: const Text('Восстановить заводские шаблоны тренировок'),
-              onTap: _showResetTemplatesDialog,
-            ),
-          ),
-
-          // КНОПКА ПОЛНОГО СБРОСА
-          Card(
-            child: ListTile(
-              leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
-              title: const Text('Сброс до заводских настроек'),
-              subtitle: const Text('Удалить ВСЕ данные и вернуть исходное состояние'),
-              onTap: _showFactoryResetDialog,
-            ),
-          ),
-
-          // РАЗДЕЛ: О ПРИЛОЖЕНИИ
-          _buildSectionHeader('О приложении'),
-          Card(
-            child: ListTile(
-              leading: Icon(Icons.person_pin_circle_sharp, color:Theme.of(context).colorScheme.primary),
-              title: const Text('Cделано при самостоятельном энтузиазме Denis S. (Andromeda)'),
-              subtitle: const Text('Предложения и жалобы прнимаются по адресу den.work.zav@gmail.com.\nВсех благ!\nVersioN: 1.0.0'),
-            ),
-          ),
+        ),
         ],
+
+
       ),
     );
   }

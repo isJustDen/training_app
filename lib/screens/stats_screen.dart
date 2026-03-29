@@ -1,6 +1,7 @@
 //screens/stats_screen.dart
 
 import 'package:fitflow/services/history_service.dart';
+import 'package:fitflow/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import '../models/exercise.dart';
 import '../services/storage_service.dart';
@@ -152,60 +153,47 @@ class _StatsScreenState extends State<StatsScreen>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildContent(),
+      body: CustomScrollView(
+        slivers: [
+          AppHeader(
+            title: 'Статистика',
+            subtitle: '${_exerciseStats.length} упражнений · последние ${_filterDays} дней',
+            actions: [
+              headerAction(
+                icon: Icons.refresh_rounded,
+                tooltip: 'Обновить',
+                onTap: _loadData,
+              ),
+            ],
+          ),
+
+          // ОСНОВНОЙ КОНТЕНТ
+          SliverToBoxAdapter(
+            child: _isLoading
+              ? const Padding(
+                padding: EdgeInsets.only(top: 100),
+              child: Center(child: CircularProgressIndicator()),
+            )
+                : _workoutHistory.isEmpty
+                  ? _buildEmptyState()
+                  : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildOverallStats(),
+                  const SizedBox(height: 24),
+                  _buildExercisesState(),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+
+          ),
+        ],
+      ),
     );
   }
-
-  // ВЕРХНЯЯ ПАНЕЛЬ
-  AppBar _buildAppBar(){
-    return AppBar(
-      title: const Text('Статистика'),
-      actions: [
-        // КНОПКА ОЧИСТКИ ВСЕЙ СТАТИСТИКИ
-        // IconButton(
-        //     onPressed: _showClearAllDialog,
-        //     icon: Icon(Icons.delete_sweep,  color: Theme.of(context).colorScheme.error,),
-        //     tooltip: 'Очистить всю статистику тренировок?',
-        // ),
-      ],
-    );
-  }
-
-  // ДИАЛОГ ОЧИСТКИ ВСЕЙ СТАТИСТИКИ
-  // void _showClearAllDialog(){
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Очистить всю статистику?'),
-  //       content: const Text(
-  //           'Вся история тренировок будет удалена \n '
-  //               'Шаблоны и упражнения останутся нетронутыми'
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             child: const Text('Отмена'),
-  //         ),
-  //         ElevatedButton(
-  //             onPressed: () async {
-  //               await StorageService.clearHistoryOnly();
-  //               Navigator.pop(context);
-  //               await _loadData(); // перезагрузка экрана
-  //               ScaffoldMessenger.of(context).showSnackBar(
-  //                 const SnackBar(
-  //                 content: Text('Вся статистика очищена'),
-  //                 backgroundColor:Colors.orange,
-  //                 ),
-  //               );
-  //             },
-  //             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-  //             child: const Text('Очистить')
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   // ДИАЛОГ ОЧИСТКИ ОДНОГО УПРАЖНЕНИЯ
   void _showDeleteExerciseDialog(String exerciseName) {

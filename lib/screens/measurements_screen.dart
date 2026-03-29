@@ -1,5 +1,6 @@
 //screens/measurements_screen.dart
 
+import 'package:fitflow/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import '../models/measurement.dart';
 import '../services/measurement_service.dart';
@@ -52,35 +53,44 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
   @override
   Widget build (BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Замеры и прогресс'),
-        bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(icon: Icon(Icons.fitness_center), text: 'Силовые'),
-              Tab(icon: Icon(Icons.straighten), text: 'Физические'),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          AppHeader(
+            title: 'Замеры',
+            subtitle: 'Силовые и физические показатели',
+            expandedHeight: 130,
+            actions: [
+              headerAction(
+                  icon: Icons.add_rounded,
+                  tooltip: 'Новый замер',
+                  onTap: _addMeasurement,
+              ),
             ],
-        ),
-      ),
-      body: _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : TabBarView(
+          ),
+
+          // ТАБ-БАР прикреплённый под хедером
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyTabBarDelegate(
+              TabBar(
+                  controller: _tabController,
+                  tabs:  const [
+                    Tab(icon: Icon(Icons.fitness_center), text: 'Силовые'),
+                    Tab(icon: Icon(Icons.fitness_center), text: 'Физические'),
+                  ],
+              ),  
+            ),
+          ),
+        ],
+        body: _isLoading
+          ? const Center(child: CircularProgressIndicator()) 
+            : TabBarView(
           controller: _tabController,
-          children: [
-            _buildMeasurementList(
-              measurements: _strengthMeasurements,
-              type: MeasurementType.strength,
+              children: [
+                _buildMeasurementList(measurements: _strengthMeasurements, type: MeasurementType.strength),
+                _buildMeasurementList(measurements: _physicalMeasurement, type: MeasurementType.physical),
+              ],
             ),
-            _buildMeasurementList(
-              measurements: _physicalMeasurement,
-              type: MeasurementType.physical,
-            ),
-          ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-          onPressed: _addMeasurement,
-          icon: const Icon(Icons.add),
-          label: const Text('Новый замер'),
       ),
     );
   }
@@ -608,4 +618,27 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
     // Перезагружаем данные (вдруг пользователь что-то добавил)
     _loadData();
   }
+}
+
+// ДЕЛЕГАТ ДЛЯ ПРИКРЕПЛЁННОГО TAB BAR
+class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+  const _StickyTabBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContext){
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) => false;
+
 }
