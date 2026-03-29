@@ -11,10 +11,12 @@ import '../models/workout_history.dart';
 // ЭКРАН СТАТИСТИКИ И ПРОГРЕССА
 class StatsScreen extends StatefulWidget{
   final List<Exercise>? currentExercises;
+  final List<WorkoutHistory>? preloadedHistory;
 
   const StatsScreen({
     super.key,
     this.currentExercises,
+    this.preloadedHistory,
   });
 
   @override
@@ -56,6 +58,45 @@ class _StatsScreenState extends State<StatsScreen>{
 
   // ЗАГРУЗКА ДАННЫХ
   Future<void> _loadData() async {
+    // БЫСТРЫЙ ПУТЬ — если есть предзагруженные данные и это первая загрузка
+    if (widget.preloadedHistory != null && _workoutHistory.isEmpty) {
+      _workoutHistory = widget.preloadedHistory!;
+
+      final cutoffDate = DateTime.now().subtract(Duration(days: _filterDays));
+      _workoutHistory = _workoutHistory
+          .where((workout) => workout.date.isAfter(cutoffDate))
+          .toList();
+
+      List<Exercise> currentExercise;
+
+      if (_localExercises.isNotEmpty) {
+        currentExercise = _localExercises;
+      } else if (widget.currentExercises != null &&
+          widget.currentExercises!.isNotEmpty) {
+        currentExercise = widget.currentExercises!;
+        _localExercises =
+            List.from(currentExercise); // инициализируем локальную копию
+      } else {
+        currentExercise = _getCurrentExercisesFromLastWorkout();
+        _localExercises = List.from(currentExercise);
+      }
+
+      if (currentExercise.isNotEmpty) {
+        _exerciseStats = StatsService.getAllExercisesStats(
+            history: _workoutHistory,
+            currentExercises: currentExercise
+        );
+      }
+
+      for (var exercise in currentExercise) {
+        _exerciseHistory [exercise.name] =
+        await HistoryService.getFullExerciseHistory(exercise.name);
+      }
+
+      setState(() => _isLoading = false);
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     // 1. ЗАГРУЖАЕМ ИСТОРИЮ ТРЕНИРОВОК

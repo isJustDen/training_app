@@ -1,4 +1,6 @@
 // main.dart
+import 'package:fitflow/models/exercise.dart';
+import 'package:fitflow/models/workout_history.dart';
 import 'package:fitflow/screens/splash_screen.dart';
 import 'package:fitflow/services/storage_service.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +11,15 @@ import 'screens/templates_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/home_screen.dart';
+
+
+//ХРАНЕНИЕ ПРЕДЗАГРУЖЕННЫХ ДАННЫХ
+class AppData{
+  final List<WorkoutHistory> history;
+  final List<Exercise> exercises;
+
+  AppData({required this.history, required this.exercises});
+}
 
 // ГЛАВНАЯ ФУНКЦИЯ
 void main() async{
@@ -46,18 +57,32 @@ class WorkoutApp extends StatelessWidget {
         : ThemeMode.light,
       home: SplashScreen(
           onInit: _initializeApp,
-          nextScreen: const HomeScreen(),
+          nextScreenBuilder: (data) => HomeScreen(preloadedData: data as AppData),
       ),
       debugShowCheckedModeBanner: false,
     );
   }
 
   // ВСЯ ИНИЦИАЛИЗАЦИЯ
-  Future<void> _initializeApp() async {
+  Future<AppData> _initializeApp() async {
     await Future.wait([
       _initNotifications(),
       _initStorage(),
     ]);
+
+    // Грузим всё что нужно для Stats
+    final history = await StorageService.loadHistory();
+    final templates = await StorageService.loadTemplates();
+
+    // Собираем уникальные упражнения из всех шаблонов
+    final all = <String, Exercise>{};
+    for (var t in templates){
+      for (var e in t.exercises) {
+        all.putIfAbsent(e.name, () => e);
+      }
+    }
+
+    return AppData(history: history, exercises: all.values.toList());
   }
 
   Future<void> _initNotifications() async {

@@ -1,9 +1,11 @@
 //screens/home_screen.dart
 
+import 'package:fitflow/models/workout_history.dart';
 import 'package:fitflow/screens/categories_screen.dart';
 import 'package:fitflow/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../main.dart';
 import 'templates_screen.dart';
 import 'stats_screen.dart';
 import 'measurements_screen.dart';
@@ -13,7 +15,8 @@ import '../services/storage_service.dart';
 
 // ГЛАВНЫЙ ЭКРАН
 class HomeScreen  extends StatefulWidget{
-  const HomeScreen({super.key});
+  final AppData? preloadedData;
+  const HomeScreen({super.key, this.preloadedData});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -33,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ДАННЫЕ для передачи в StatsScreen
   List<Exercise> _allExercises = [];
+  List<WorkoutHistory> _preloadedHistory = [];
 
   @override
   void initState() {
@@ -51,7 +55,13 @@ class _HomeScreenState extends State<HomeScreen>
         curve: Curves.elasticOut);
     _fabAnimController.forward();
 
-    _loadExercises();
+    // ИСПОЛЬЗУЕМ ПРЕДЗАГРУЖЕННЫЕ ДАННЫЕ если есть
+    if (widget.preloadedData != null) {
+      _allExercises = widget.preloadedData!.exercises;
+      _preloadedHistory = widget.preloadedData!.history;
+    } else {
+      _loadExercises();
+    }
   }
 
   @override
@@ -119,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen>
             const CategoriesScreen(),
 
             // ВКЛАДКА 2: СТАТИСТИКА
-            StatsScreen(currentExercises: _allExercises),
+            StatsScreen(currentExercises: _allExercises, preloadedHistory: _preloadedHistory),
 
             // ВКЛАДКА 3: ЗАМЕРЫ
             const MeasurementsScreen(),

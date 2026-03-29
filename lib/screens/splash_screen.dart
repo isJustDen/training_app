@@ -6,13 +6,13 @@ import 'package:fitflow/services/sound_service.dart';
 //СПЛЭШ СКРИН ДЛЯ ПРИЛОЖЕНИЯ
 
 class SplashScreen extends StatefulWidget{
-  final Future <void> Function() onInit;
-  final Widget nextScreen;
+  final Future <dynamic> Function() onInit;
+  final Widget Function (dynamic data) nextScreenBuilder;
 
   const SplashScreen ({
    super.key,
    required this.onInit,
-   required this.nextScreen
+   required this.nextScreenBuilder,
 });
 
   @override
@@ -135,8 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // ШАГ 6: Запускаем прогресс-бар и инициализацию ПАРАЛЛЕЛЬНО
     _progressController.forward();
-    await widget.onInit;
-
+    final appData = await widget.onInit();
     // ШАГ 7: Дожидаемся окончания прогресс-бара
     await _progressController.forward();
 
@@ -150,13 +149,11 @@ class _SplashScreenState extends State<SplashScreen>
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, _, ___) => widget.nextScreen, // Какой экран показать
+          pageBuilder: (_, _, ___) => widget.nextScreenBuilder(appData), // Какой экран показать
 
           // Анимация перехода: простое затухание
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child,);
-          },
-
+          transitionsBuilder: (_, animation, __, child) =>
+             FadeTransition(opacity: animation, child: child),
           // Длительность перехода
           transitionDuration: const Duration(milliseconds: 500),
         ),
