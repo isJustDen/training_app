@@ -108,14 +108,33 @@ class _StatsScreenState extends State<StatsScreen>{
     _workoutHistory = history
         .where((workout) => workout.date.isAfter(cutoffDate))
         .toList();
-    // 3. ПОЛУЧАЕМ ТЕКУЩИЕ УПРАЖНЕНИЯ
-    List<Exercise> currentExercise;
 
+    // 3. ПОЛУЧАЕМ ТЕКУЩИЕ УПРАЖНЕНИЯ
+
+    final freshTemplates = await StorageService.loadTemplates();
+    final freshExercisesMap = <String, Exercise>{};
+    for (var t in freshTemplates) {
+      for (var e in t.exercises) {
+        freshExercisesMap.putIfAbsent(e.name, () => e);
+      }
+    }
+    final freshExercises = freshExercisesMap.values.toList();
+
+    List<Exercise> currentExercise;
     if (_localExercises.isNotEmpty) {
-      currentExercise = _localExercises;
+      // Пересекаем: берём только упражнения которые ещё есть в шаблонах
+      final localNames = _localExercises.map((e) => e.name).toSet();
+      currentExercise = freshExercises
+          .where((e) => localNames.contains(e.name))
+          .toList();
+      _localExercises = currentExercise; // обновляем локальную копию
     } else if (widget.currentExercises != null && widget.currentExercises!.isNotEmpty) {
-      currentExercise = widget.currentExercises!;
-      _localExercises = List.from(currentExercise); // инициализируем локальную копию
+      // Первый запуск с предзагруженными данными — фильтруем через свежие шаблоны
+      final freshNames = freshExercises.map((e) => e.name).toSet();
+      currentExercise = widget.currentExercises!
+          .where((e) => freshNames.contains(e.name))
+          .toList();
+      _localExercises = List.from(currentExercise);
     } else {
       currentExercise = _getCurrentExercisesFromLastWorkout();
       _localExercises = List.from(currentExercise);
@@ -217,10 +236,11 @@ class _StatsScreenState extends State<StatsScreen>{
                   _localExercises.removeWhere((e) => e.name == exerciseName);
 
                   Navigator.pop(context);
+                  _workoutHistory = [];
                   await _loadData();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('Упражнение "${exerciseName}" удалено'),
+                        content: Text('Упражнение "${exerciseName}" удалено. Перезагрузите приложение для сохранения'),
                       backgroundColor: Colors.red,
                     ),
                   );
