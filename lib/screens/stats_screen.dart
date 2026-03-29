@@ -202,10 +202,7 @@ class _StatsScreenState extends State<StatsScreen>{
         builder: (context) => AlertDialog(
           title: const Text('Удалить упражнение?'),
           content: Text(
-            'Упражнение "$exerciseName" будет удалено:\n'
-                '• Из всех шаблонов тренировок\n'
-                '• Из истории тренировок\n\n'
-                'При следующей тренировке оно создастся заново.',
+            'Упражнение "$exerciseName" будет удалено из истории тренировок',
           ),
           actions: [
             TextButton(
@@ -214,11 +211,10 @@ class _StatsScreenState extends State<StatsScreen>{
             ),
             ElevatedButton(
                 onPressed: () async {
-                  await StorageService.deleteExerciseCompletely(exerciseName);
+                  await StorageService.clearExerciseHistory(exerciseName);
 
                   // УДАЛЯЕМ ИЗ ЛОКАЛЬНОГО СПИСКА — чтобы не появилось снова
                   _localExercises.removeWhere((e) => e.name == exerciseName);
-
 
                   Navigator.pop(context);
                   await _loadData();
@@ -449,7 +445,7 @@ class _StatsScreenState extends State<StatsScreen>{
                       onPressed: () => _showDeleteExerciseDialog(exerciseName),
                       icon: const Icon(Icons.delete_outline, size: 20),
                       color: Colors.red.shade300,
-                      tooltip: 'Полностью удалить упражнение',
+                      tooltip: 'Удалить статистику упражнения',
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
