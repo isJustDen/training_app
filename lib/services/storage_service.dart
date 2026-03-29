@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:fitflow/models/workout_category.dart';
 import 'package:fitflow/models/workout_session.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exercise.dart';
 import '../models/workout_template.dart';
@@ -397,6 +398,7 @@ class StorageService {
 //------------------------------СОСТОЯНИЕ ТЕКУЩЕЙ СЕССИИ--------------------------------------------//
   // СОХРАНИТЬ текущую сессию
   static Future<void> saveWorkoutSession(WorkoutSession session) async {
+    await HapticFeedback.heavyImpact();
     final prefs = await SharedPreferences.getInstance();
     final json = jsonEncode(session.toMap());
     await prefs.setString(_sessionKey, json);
@@ -417,6 +419,7 @@ class StorageService {
 
   // УДАЛИТЬ сессию (после завершения или отказа от восстановления)
   static Future<void> clearWorkoutSession() async {
+    await HapticFeedback.vibrate();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
   }
@@ -436,6 +439,7 @@ class StorageService {
 
   // СОХРАНЕНИЕ КАТЕГОРИЙ
   static Future<void> saveCategories(List<WorkoutCategory> categories) async {
+    await HapticFeedback.lightImpact();
     final prefs = await SharedPreferences.getInstance();
     final raw = categories.map((c) => jsonEncode(c.toMap())).toList();
     await prefs.setStringList(_categoriesKey, raw);
@@ -443,23 +447,28 @@ class StorageService {
 
   // ОЧИСТИТЬ ВСЕ ДАННЫЕ
   static Future<void> factoryReset() async {
+    await HapticFeedback.heavyImpact();
     final prefs = await _prefs;
     await prefs.clear();
   }
 
   // СБРОСИТЬ ШАБЛОНЫ УПРАЖНЕНИЙ ДО ЗАВОДСКИХ
   static Future<void> resetTemplatesToDefault() async {
+    await HapticFeedback.heavyImpact();
     final defaultTemplates = _getDefaultTemplates();
     await saveTemplates(defaultTemplates);
   }
 
   // ОЧИСТИТЬ СТАТИСТИКУ (только историю)
   static Future<void> clearStatsOnly() async{
+    await HapticFeedback.heavyImpact();
+    await HapticFeedback.heavyImpact();
     await clearHistoryOnly();
   }
 
 // УДАЛИТЬ УПРАЖНЕНИЕ ПОЛНОСТЬЮ (из шаблонов и истории)
   static Future<void> deleteExerciseCompletely(String exerciseName) async {
+    await HapticFeedback.heavyImpact();
     // 1. Удаляем из истории
     await clearExerciseHistory(exerciseName);
 

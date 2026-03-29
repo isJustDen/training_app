@@ -1039,6 +1039,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ОБНОВЛЕНИЕ ВЕСА УПРАЖНЕНИЯ
   void _updateWeight(int index, String value){
+    HapticFeedback.mediumImpact();
     final weight = double.tryParse(value) ?? 0.0;
 
     setState(() {
@@ -1060,6 +1061,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // УВЕЛИЧЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
   void _incrementReps(int index){
+    HapticFeedback.mediumImpact();
     setState(() {
       final currentReps = _exercisesProgress[index].currentReps;
       _exercisesProgress[index] = _exercisesProgress[index].copyWith(
@@ -1070,6 +1072,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // УМЕНЬШЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
   void _decrementReps(int index) {
+    HapticFeedback.mediumImpact();
     if (_exercisesProgress[index].currentReps > 0) {
       setState(() {
         final currentReps = _exercisesProgress[index].currentReps;
@@ -1287,6 +1290,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ЗАПУСК ТАЙМЕРА
   void _startTimer(int seconds){
+    HapticFeedback.heavyImpact();
     setState(() {
       _restTimeRemaining = seconds;
       _isResting = true;
@@ -1295,6 +1299,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ЗАВЕРШЕНИЕ ОТДЫХА
   void _endRestPeriod(){
+    HapticFeedback.mediumImpact();
     setState(() {
       _isResting = false;
       _restTimeRemaining = 0;
@@ -1303,6 +1308,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ПЕРЕХОД К ПРЕДЫДУЩЕМУ УПРАЖНЕНИЮ
   void _previousExercise(){
+    HapticFeedback.lightImpact();
     if (_currentExerciseIndex > 0){
       setState(() {
         _currentExerciseIndex--;
@@ -1312,6 +1318,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ПЕРЕХОД К СЛЕДУЮЩЕМУ УПРАЖНЕНИЮ
   void _nextExercise(){
+    HapticFeedback.mediumImpact();
     if (_currentExerciseIndex < _exercisesProgress.length -1){
       setState(() {
         _currentExerciseIndex++;
@@ -1321,6 +1328,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ЗАВЕРШЕНИЕ ТРЕНИРОВКИ
   void _finishWorkout(){
+    HapticFeedback.heavyImpact();
     final totalCompletedSets = _exercisesProgress.fold(0, (sum, p) => sum + p.completedSetsCount,);
 
     if (totalCompletedSets == 0) {
@@ -1595,6 +1603,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // СОХРАНЯЕМ ТЕКУЩИЙ ПРОГРЕСС В СЕССИЮ
   Future<void> _saveSession() async {
+    HapticFeedback.lightImpact();
     // Собираем completedSets для каждого упражнения
     final completedSets = <String, List<Map<String, dynamic>>>{};
     final currentWeights = <String, double> {};
@@ -1620,6 +1629,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ОБРАБОТЧИК НАЖАТИЯ "НАЗАД"
   Future<bool> _onWillPop() async {
+    HapticFeedback.mediumImpact();
     // Проверяем — был ли реальный прогресс
     final hasProgress = _exercisesProgress.any((p) => p.completedSets.isNotEmpty);
 
@@ -1656,6 +1666,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // ЗАВЕРШЕНИЕ ПОДХОДА НА ВРЕМЯ
   Future<void> _completeTimeBasedSet(int index, int elepsedSeconds) async {
+    HapticFeedback.heavyImpact();
     final progress = _exercisesProgress[index];
 
     if (elepsedSeconds == 0) {
@@ -1697,6 +1708,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // РЕДАКТИРОВАНИЕ ВЕСА ЧЕРЕЗ ДИАЛОГ
   void _showWeightEditor(int index){
+    HapticFeedback.lightImpact();
     final progress = _exercisesProgress[index];
     final controller = TextEditingController(
       text: progress.currentWeight.toStringAsFixed(1),
@@ -1902,6 +1914,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
 // ВСПОМОГАТЕЛЬНЫЙ МЕТОД — НАВИГАЦИЯ НА ЭКРАН ЗАВЕРШЕНИЯ
   void _navigateToComplete (Duration duration) {
+    HapticFeedback.heavyImpact();
     if (!mounted) return;
       // Считаем статистику
       int totalSets = 0;
@@ -1929,12 +1942,14 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   // ЗАПУСК ТАЙМЕРА ЗАТЕМНЕНИЯ
   void _resetDimTimer() {
     _dimTimer?.cancel();
+    HapticFeedback.vibrate();
     if(_isDimmed){
       setState(() => _isDimmed = false);// снимаем затемнение при касании
     }
     if (!_dimEnabled) return;
 
     _dimTimer = Timer( Duration(seconds: _dimAfterSeconds), () {
+      HapticFeedback.vibrate();
       if (mounted) setState(() => _isDimmed = true);
     });
   }

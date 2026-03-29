@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
 
     // Лёгкая вибрация при переключении вкладки
-    HapticFeedback.selectionClick();
+    HapticFeedback.mediumImpact();
 
     // ЗВУК ТОЛЬКО ДЛЯ ВКЛАДОК "Тренировки" И "Статистика" (индексы 0 и 1)
     if (index == 0 || index == 1){
