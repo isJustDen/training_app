@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:fitflow/models/workout_category.dart';
 import 'package:fitflow/models/workout_session.dart';
+import 'package:fitflow/services/workout_presets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,7 +55,7 @@ class StorageService {
 
     // ЕСЛИ ДАННЫХ НЕТ (первый запуск)
     if (jsonString == null){
-      return _getDefaultTemplates();
+      return WorkoutPresets.getDefaultTemplates();
     }
 
     // ЕСЛИ ДАННЫЕ ЕСТЬ - пробуем их распарсить
@@ -71,237 +72,8 @@ class StorageService {
     } catch (e){
       // ЕСЛИ ОШИБКА ПАРСИНГА
       print('Ошибка парсинга $e');
-      return _getDefaultTemplates();
+      return WorkoutPresets.getDefaultTemplates();
     }
-  }
-
-  // НАЧАЛЬНЫЕ ШАБЛОНЫ ДЛЯ ПЕРВОГО ЗАПУСКА
-  static List<WorkoutTemplate> _getDefaultTemplates(){
-    final now = DateTime.now();
-
-    return [
-      WorkoutTemplate(
-          id: '1',
-          name: 'FB. Акцент: грудь',
-          dayOfWeek: 'Понедельник',
-          exercises: [
-            Exercise(
-              id: '1',
-              name: 'Жим штанги лёжа',
-              weight: 20,
-              sets: 3,
-              reps: 8,
-              restTime: 120,
-            ),
-            Exercise(
-              id: '101',
-              name: 'Жим тренажёра сидя',
-              weight: 15,
-              sets: 3,
-              reps: 10,
-              restTime: 120,
-            ),
-            Exercise(
-              id: '2',
-              name: 'Тяга к поясу',
-              weight: 10,
-              sets: 3,
-              reps: 8,
-              restTime: 120,
-            ),
-            Exercise(
-              id: '3',
-              name: 'Присед',
-              weight: 22.5,
-              sets: 3,
-              reps: 8,
-              restTime: 120,
-            ),
-            Exercise(
-              id: '4',
-              name: 'Махи гантелей',
-              weight: 10,
-              sets: 3,
-              reps: 12,
-              restTime: 60,
-            ),
-            Exercise(
-              id: '5',
-              name: 'Бицепс, Z-гриф',
-              weight: 15,
-              sets: 3,
-              reps: 8,
-              restTime: 60,
-            ),
-            Exercise(
-              id: '6',
-              name: 'Подъём ног в висе',
-              weight: 0,
-              sets: 3,
-              reps: 10,
-              restTime: 60,
-            ),
-            Exercise(
-              id: '7',
-              name: 'Трицепс (прямая рукоятка)',
-              weight: 25,
-              sets: 3,
-              reps: 8,
-              restTime: 60,
-            ),
-          ],
-          createdAt: now,
-          updatedAt: now,
-      ),
-
-      WorkoutTemplate(
-        id: '2',
-        name: 'FB. Акцент: спина',
-        dayOfWeek: 'Среда',
-        exercises: [
-          Exercise(
-            id: '8',
-            name: 'Подтягивания широкие',
-            weight: 0,
-            sets: 3,
-            reps: 8,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '9',
-            name: 'Тяга тренажёра к поясу',
-            weight: 40,
-            sets: 3,
-            reps: 8,
-            restTime: 120,
-          ),
-          Exercise(
-            id: '10',
-            name: 'Отжимания от брусьев',
-            weight: 0,
-            sets: 3,
-            reps: 8,
-            restTime: 120,
-          ),
-          Exercise(
-            id: '11',
-            name: 'Выпады',
-            weight: 25,
-            sets: 3,
-            reps: 12,
-            restTime: 120,
-          ),
-          Exercise(
-            id: '12',
-            name: 'Тяга к подборотку',
-            weight: 10,
-            sets: 3,
-            reps: 8,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '13',
-            name: 'Гантели(бицепс)',
-            weight: 15,
-            sets: 3,
-            reps: 10,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '100',
-            name: 'Трицепс (прямая)',
-            weight: 15,
-            sets: 3,
-            reps: 10,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '14',
-            name: 'Скручивания с паузой',
-            weight: 0,
-            sets: 3,
-            reps: 8,
-            restTime: 60,
-          ),
-        ],
-        createdAt: now,
-        updatedAt: now,
-      ),
-
-      WorkoutTemplate(
-        id: '3',
-        name: 'FB. Акцент: ноги+плечи',
-        dayOfWeek: 'Пятница',
-        exercises: [
-          Exercise(
-            id: '15',
-            name: 'Становая тяга',
-            weight: 40,
-            sets: 3,
-            reps: 8,
-            restTime: 120,
-          ),
-          Exercise(
-            id: '16',
-            name: 'Жим ногами лёжа',
-            weight: 30,
-            sets: 3,
-            reps: 8,
-            restTime: 120,
-          ),
-          Exercise(
-            id: '17',
-            name: 'Армейский жим штанги',
-            weight: 10,
-            sets: 3,
-            reps: 8,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '18',
-            name: 'Штанга на бицепс',
-            weight: 10,
-            sets: 3,
-            reps: 12,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '19',
-            name: 'Жим гантелей',
-            weight: 20,
-            sets: 3,
-            reps: 8,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '20',
-            name: 'Тяга тренажера',
-            weight: 50,
-            sets: 3,
-            reps: 10,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '102',
-            name: 'Икры',
-            weight: 50,
-            sets: 3,
-            reps: 10,
-            restTime: 60,
-          ),
-          Exercise(
-            id: '21',
-            name: 'Пресс (турник)',
-            weight: 0,
-            sets: 3,
-            reps: 10,
-            restTime: 60,
-          ),
-        ],
-        createdAt: now,
-        updatedAt: now,
-      ),
-    ];
   }
 
   // ОЧИСТКА ВСЕХ ДАННЫХ
@@ -428,6 +200,11 @@ class StorageService {
   static Future<List<WorkoutCategory>> loadCategories() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_categoriesKey) ?? [];
+
+    if (raw.isEmpty) {
+      return WorkoutPresets.getDefaultCategories();
+    }
+
     return raw.map((s) {
       try {
         return WorkoutCategory.fromMap(jsonDecode(s));
@@ -435,6 +212,11 @@ class StorageService {
         return null;
       }
     }).whereType<WorkoutCategory>().toList();
+  }
+
+  // СБРОСИТЬ КАТЕГОРИИ ДО ЗАВОДСКИХ
+  static Future<void> resetCategoriesToDefault() async {
+    await saveCategories(WorkoutPresets.getDefaultCategories());
   }
 
   // СОХРАНЕНИЕ КАТЕГОРИЙ
@@ -455,8 +237,7 @@ class StorageService {
   // СБРОСИТЬ ШАБЛОНЫ УПРАЖНЕНИЙ ДО ЗАВОДСКИХ
   static Future<void> resetTemplatesToDefault() async {
     await HapticFeedback.heavyImpact();
-    final defaultTemplates = _getDefaultTemplates();
-    await saveTemplates(defaultTemplates);
+    await saveTemplates(WorkoutPresets.getDefaultTemplates());
   }
 
   // ОЧИСТИТЬ СТАТИСТИКУ (только историю)

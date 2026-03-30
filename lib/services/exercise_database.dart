@@ -95,6 +95,21 @@ class ExerciseDatabase {
     // ───── ШЕЯ ─────
     _ExerciseTemplate('Шраги с гантелями',         [MuscleGroup.neck, MuscleGroup.back]),
     _ExerciseTemplate('Наклоны головы с сопротивлением', [MuscleGroup.neck]),
+
+    // ───── КАЛИСТЕНИКА / УЛИЦА ─────
+
+    _ExerciseTemplate('Австралийские подтягивания',  [MuscleGroup.back, MuscleGroup.biceps]),
+    _ExerciseTemplate('Отжимания узким хватом',      [MuscleGroup.chest, MuscleGroup.triceps]),
+    _ExerciseTemplate('Приседания',                  [MuscleGroup.quadriceps, MuscleGroup.glutes]),
+    _ExerciseTemplate('Прыжки на месте',             [MuscleGroup.quadriceps, MuscleGroup.calves]),
+    _ExerciseTemplate('Подъём ног лёжа',             [MuscleGroup.abs]),
+    _ExerciseTemplate('Берпи',                       [MuscleGroup.quadriceps, MuscleGroup.chest, MuscleGroup.abs]),
+    _ExerciseTemplate('Планка',                      [MuscleGroup.abs, MuscleGroup.lowerBack]),
+    _ExerciseTemplate('Вис на перекладине',          [MuscleGroup.forearm, MuscleGroup.back]),
+    _ExerciseTemplate('Отжимания на кулаках',        [MuscleGroup.chest, MuscleGroup.triceps, MuscleGroup.forearm]),
+    _ExerciseTemplate('Пистолет (присед на одной)',  [MuscleGroup.quadriceps, MuscleGroup.glutes]),
+    _ExerciseTemplate('Прыжки со скакалкой',         [MuscleGroup.calves, MuscleGroup.abs]),
+    _ExerciseTemplate('Мост',                        [MuscleGroup.glutes, MuscleGroup.lowerBack, MuscleGroup.hamstrings]),
   ];
 
   // Старый синхронный search оставляем для обратной совместимости

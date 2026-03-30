@@ -120,6 +120,23 @@ class _SettingsScreenState extends State<SettingsScreen>{
                 ),
               ),
 
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.category_rounded, color: Theme.of(context).colorScheme.error),
+                  title: const Text('Сбросить категории'),
+                  subtitle: const Text('Восстановить категории Зал и Улица'),
+                  onTap: () async {
+                    await StorageService.resetCategoriesToDefault();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Категории восстановлены'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                ),
+              ),
+
               // РАЗДЕЛ: О ПРИЛОЖЕНИИ
               _buildSectionHeader('О приложении'),
               Card(
