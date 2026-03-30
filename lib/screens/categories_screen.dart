@@ -318,7 +318,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                   Text(
                     category.name,
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -455,7 +455,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                   Text(
                     template.name,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -472,20 +472,20 @@ class _CategoriesScreenState extends State<CategoriesScreen>
 
             // КНОПКИ ДЕЙСТВИЙ
             IconButton(
-              icon: const Icon(Icons.play_arrow_rounded, color: Colors.green, size: 30,),
+              icon: const Icon(Icons.play_arrow_rounded, color: Colors.green, size: 25,),
                 onPressed: () => _startWorkout(template),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
             ),
             IconButton(
-              icon: Icon(Icons.edit_rounded, color:Theme.of(context).colorScheme.onSurfaceVariant, size: 25,),
+              icon: Icon(Icons.edit_rounded, color:Theme.of(context).colorScheme.onSurfaceVariant, size: 20,),
               onPressed: () => _editTemplate(template),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
             ),
             // УБРАТЬ ИЗ ГРУППЫ (не удалять тренировку)
             IconButton(
-              icon: Icon(Icons.remove_circle_outline_rounded, color: Theme.of(context).colorScheme.error, size: 25,),
+              icon: Icon(Icons.remove_circle_outline_rounded, color: Theme.of(context).colorScheme.error, size: 20,),
               onPressed: () => _removeFromGroup(category, group, template),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
