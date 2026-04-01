@@ -146,6 +146,17 @@ class _SettingsScreenState extends State<SettingsScreen>{
                   subtitle: const Text('Предложения и жалобы прнимаются по адресу den.work.zav@gmail.com.\nВсех благ!\nVersioN: 1.0.0'),
                 ),
               ),
+
+              _buildSectionHeader('Поддержка'),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.favorite, color: Colors.red.shade400),
+                  title: const Text('Поддержать автора'),
+                  subtitle: const Text('Сказать спасибо и поддержать проект'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _showSupportDialog,
+                ),
+              ),
             ],
           ),
         ),
@@ -399,4 +410,204 @@ class _SettingsScreenState extends State<SettingsScreen>{
       ),
     );
   }
+
+  //ПОДДЕРЖАТЬ АВТОРА РАЗДЕЛ
+  void _showSupportDialog() {
+    final cardNumber = '';
+    final sbpNumber = '';
+    final cryptoWallet = 'Мой кошелек крипты';
+    final boostyLink = 'link';
+
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.favorite, color: Colors.red.shade400, size: 28),
+              const SizedBox(width: 8),
+              const Text('Поддержать проект'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Если приложение помогает и вы хотите сказать "спасибо":',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+
+                // КАРТА
+                _buildDonationItem(
+                  icon: Icons.credit_card,
+                  title: 'Карта',
+                  value: cardNumber,
+                  color: Colors.green.shade700,
+                  onTap: () => _copyToClipboard(cardNumber, 'Номер карты скопирован'),
+                ),
+
+                const SizedBox(height: 12),
+
+                // СБП
+                _buildDonationItem(
+                  icon: Icons.phone_android,
+                  title: 'СБП',
+                  value: sbpNumber,
+                  color: Colors.blue.shade700,
+                  onTap: () => _copyToClipboard(sbpNumber, 'Номер СБП скопирован'),
+                ),
+
+                const SizedBox(height: 12),
+
+                // КРИПТО
+                _buildDonationItem(
+                  icon: Icons.currency_bitcoin,
+                  title: 'Крипто',
+                  value: cryptoWallet,
+                  color: Colors.orange.shade700,
+                  onTap: () => _copyToClipboard(cryptoWallet, 'Адрес кошелька скопирован'),
+                ),
+
+                const SizedBox(height: 12),
+
+                // BOOSTY
+                _buildDonationItem(
+                  icon: Icons.bolt_rounded,
+                  title: 'Boosty',
+                  value: boostyLink,
+                  color: Colors.yellow.shade700,
+                  onTap: () => _copyToClipboard(boostyLink, 'Адрес Boosty скопирован'),
+                ),
+
+                const SizedBox(height: 20),
+
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.favorite, color: Colors.red.shade400, size: 16),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Приложение остаётся полностью бесплатным для всех.',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
+                  'Спасибо, что пользуетесь! 💪',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Закрыть'),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+    );
+  }
+
+  // ВИДЖЕТ ДЛЯ ОТОБРАЖЕНИЯ РЕКВИЗИТА
+  Widget _buildDonationItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'Копировать',
+                style: TextStyle(fontSize: 11),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+// МЕТОД ДЛЯ КОПИРОВАНИЯ В БУФЕР ОБМЕНА
+  void _copyToClipboard(String text, String message) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
 }
