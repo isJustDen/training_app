@@ -1,6 +1,7 @@
 //screens/settings_screen.dart
 
 import 'package:fitflow/screens/templates_screen.dart';
+import 'package:fitflow/services/backup_service.dart';
 import 'package:fitflow/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-        AppHeader(title: 'Настройки', subtitle: 'Персонализация прилоежния'),
+        AppHeader(title: 'Настройки', subtitle: 'Персонализация прилоежения'),
 
         SliverToBoxAdapter(
           child: ListView(
@@ -86,6 +87,10 @@ class _SettingsScreenState extends State<SettingsScreen>{
               _buildSectionHeader('Экран во время тренировки'),
               _buildDimSettings(),
               const SizedBox(height: 8),
+
+              // РАЗДЕЛ СОХРАНЕНИЯ ДАННЫХ
+              _buildSectionHeader('Резервная копия'),
+              _buildBackupSection(),
 
               // РАЗДЕЛ: ДАННЫЕ
               _buildSectionHeader('Данные'),
@@ -609,5 +614,243 @@ class _SettingsScreenState extends State<SettingsScreen>{
       ),
     );
   }
+
+  // СОХРАНЕНИЕ ПРОГРЕСС-ФАЙЛА ДЛЯ ОФФЛАЙН ИМПОРТ\ЭКСПОРТ
+  Widget _buildBackupSection() {
+    return Column(
+      children: [
+        // ЭКСПОРТ
+        Card(
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.upload_rounded, color: Colors.blue,),
+            ),
+            title: const Text('Экспортировать данные'),
+            subtitle: const Text('Сохранить все тренировки и историю в файл'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _exportBackup,
+          ),
+        ),
+        const SizedBox(height: 8,),
+
+        //ИМПОРТ
+        Card(
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.download_rounded, color: Colors.green,),
+            ),
+            title: const Text('Импортировать данные'),
+            subtitle: const Text('Восстановить из файла резервной копии'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _importBackup,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ЭКСПОРТ ДАННЫХ
+  Future<void> _exportBackup() async {
+    // Показываем индикатор загрузки
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Подготовка файла...'),
+            ],
+          ),
+        ),
+    );
+
+    final result = await BackupService.exportToFile();
+    if (mounted) Navigator.pop(context);// закрываем индикатор
+
+    if (result.isError && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(result.message ?? 'Ошибка'),
+            backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  //ИМПОРТ ДАННЫХ
+  Future<void> _importBackup() async {
+    final result = await BackupService.importFromFile();
+
+    if (!mounted) return;
+
+    if (result.isCancelled) return;
+
+    if (result.isError){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message!), backgroundColor: Colors.red,),
+      );
+      return;
+    }
+
+    if (result.isPreview) {
+      // ПОКАЗЫВАЕМ ДИАЛОГ ПОДТВЕРЖДЕНИЯ с инфо о том что будет импортировано
+      _showImportConfirmDialog(result);
+    }
+  }
+
+  void _showImportConfirmDialog(BackupResult result) {
+    // Форматируем дату экспорта
+    String dateLabel = 'неизвестно';
+    if (result.exportedAt != null) {
+      try {
+        final d = DateTime.parse(result.exportedAt!);
+        dateLabel =
+            '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year} '
+            '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+      } catch (_) {}
+    }
+
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.restore_rounded, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Восстановить данные'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ДАТА БЭКАПА
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.schedule, size: 16, color: Colors.orange,),
+                    const SizedBox(width: 8,),
+                    Expanded(
+                        child: Text(
+                          'Дата создания: $dateLabel',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // ЧТО БУДЕТ ВОССТАНОВЛЕНО
+              const Text('Будет восстановлено:',
+                style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              _buildImportRow(Icons.fitness_center, 'Тренировки', result.templatesCount),
+              _buildImportRow(Icons.history, 'Записей истории', result.historyCount),
+              _buildImportRow(Icons.folder, 'Категорий', result.categoriesCount),
+
+              const SizedBox(height: 12),
+
+              // ПРЕДУПРЕЖДЕНИЕ
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber, size: 16, color: Colors.red),
+                    SizedBox(width: 8),
+                    Expanded(
+                        child: Text(
+                          'Текущие данные будут заменены!',
+                          style: TextStyle(fontSize: 12, color: Colors.red),
+                        ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Отмена'),
+            ),
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+
+                  // Показываем прогресс
+                  if (mounted) {
+                    showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const AlertDialog(
+                          content: Row(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(width: 16),
+                              Text('Восстановление...'),
+                            ],
+                          ),
+                        ),
+                    );
+                  }
+
+                  final applyResult = await BackupService.applyImport(result.data!);
+
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(applyResult.message ?? ''),
+                          backgroundColor: applyResult.isSuccess ? Colors.green: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Восстановить', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+    );
+  }
+
+  // Строка в диалоге подтверждения
+  Widget _buildImportRow( IconData icon, String label, int count) {
+    return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant,),
+          const SizedBox(width: 8),
+          Text('$label: ', style: const TextStyle(fontSize: 13)),
+          Text('$count', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),)
+        ],
+      ),
+    );
+  }
+
 
 }
