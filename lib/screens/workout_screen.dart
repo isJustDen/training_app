@@ -393,11 +393,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                                 // ИСТОРИЧЕСКИЕ ДАННЫЕ (ЕСЛИ ЕСТЬ)
                                 if (lastResult != null && !exercise.isTimeBased)
                                   _buildHistoryIndicator(exercise, lastResult),
-
-
                               ],
                             ),
                           ),
+                          if (progress.completedSetsCount > 0)
+                            _buildDeleteSetButton(index, progress),
                         ],
                       ),
 
@@ -2051,4 +2051,165 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     });
   }
 
+  // УДАЛЕНИЕ ПОСЛЕДНЕГО ПОДХОДА
+  void _deleteLastSet(int index) {
+    final progress = _exercisesProgress[index];
+
+    if (progress.completedSets.isEmpty) return;
+
+    final lastSet = progress.completedSets.last;
+    final setNumber = progress.completedSets.length;
+
+    // Формируем описание подхода для диалога
+    final setDecription = progress.exercise.isTimeBased
+        ? 'Подход $setNumber: ${_formatSeconds(lastSet.completedReps)}'
+        : 'Подход $setNumber: ${lastSet.completedReps} повт. × '
+          '${lastSet.weight.toStringAsFixed(1)} кг';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever, color: Colors.red, size: 22),
+            SizedBox(width: 8),
+            Text('Удалить подход'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // КАКОЙ ПОДХОД УДАЛЯЕМ
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    progress.exercise.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    setDecription,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ПРЕДУПРЕЖДЕНИЕ
+            Row(
+              children: [
+                const Icon(Icons.warning_amber,
+                size: 14, color: Colors.orange),
+                const SizedBox(width: 6),
+                Expanded(
+                    child: Text(
+                      'Действие нельзя отменить',
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                setState(() {
+                  // Удаляем последний подход из списка
+                  progress.completedSets.removeLast();
+                });
+                // Сохраняем обновлённую сессию
+                await _saveSession();
+
+                if(mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                          'Подход $setNumber удалён',
+                        ),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ВСПОМОГАТЕЛЬНЫЙ — форматирует секунды (уже есть в stats_screen, дублирую)
+  String _formatSeconds(int seconds) {
+    if (seconds <= 0) return '0 сек';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    if (m == 0) return '$s сек';
+    if (s == 0) return '$m мин';
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildDeleteSetButton(int index, ExerciseProgress progress) {
+    return Tooltip(
+      message: 'Удалить последний подход',
+      child: InkWell(
+        onTap: () => _deleteLastSet(index),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.red.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.delete_outline_rounded,
+              size: 16,
+              color: Colors.red.shade400,
+              ),
+              const SizedBox(width: 3),
+              // СЧЁТЧИК — сколько подходов выполнено (понятно что именно удалится)
+              Text(
+                '${progress.completedSetsCount}',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
