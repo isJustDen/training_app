@@ -1979,37 +1979,21 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     try{
       final history = await StorageService.loadHistory();
 
-
-      // ОТЛАДКА — посмотри что в истории
-      print('=== CALCULATE PROGRESS ===');
-      print('Ищем templateId: ${widget.template.id}');
-      print('Всего записей в истории: ${history.length}');
-      for (var h in history) {
-        print('  История: id=${h.templateId}, date=${h.date}, volume=${h.totalVolume}');
-      }
-
-
       // Ищем предыдущую тренировку по тому же шаблону
       final sameTemplate  = history
         .where((h) => h.templateId == widget.template.id)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));// Новые первыми
 
-      print('Найдено по templateId: ${sameTemplate.length}');
-
-
       if (sameTemplate.length < 2) return null; // Первая тренировка
 
       final prevVolume = _calcActualVolume(sameTemplate[1]);
-
-      print('currentVolume=$currentVolume, prevVolume=$prevVolume');
 
       if (prevVolume == 0) return null;// Нет данных
 
       // Процент изменения: (новый - старый) / старый * 100
       return ((currentVolume - prevVolume)/prevVolume)*100;
-    } catch (e) {
-      print('Ошибка: $e');
+    } catch (_) {
       return null;
     }
   }
