@@ -12,6 +12,7 @@ class WorkoutCompleteScreen extends StatefulWidget{
   final int totalSets; // Всего выполнено подходов
   final int totalExercise; // Всего выполнено упражнений
   final double totalVolume; // Общий объём (кг × повторения)
+  final double? progressPercent; // Прогресс тренировки
 
   const WorkoutCompleteScreen ({
     super.key,
@@ -20,6 +21,7 @@ class WorkoutCompleteScreen extends StatefulWidget{
     required this.totalSets,
     required this.totalExercise,
     required this.totalVolume,
+    this.progressPercent,
   });
 
   @override
@@ -430,6 +432,8 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
                   ),
                 ],
               ),
+              const SizedBox(height: 16,),
+              _buildProgressPhrase(),
             ],
           ),
         ),
@@ -509,6 +513,100 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
                 ),
               ),
           ),
+        ),
+      ),
+    );
+  }
+
+  //ВИДЖЕТ ДЛЯ ОТОБРАЖЕНИЯ ИТОГА ТРЕНИРОВКИ В ПРОЦЕНТАХ
+  Widget _buildProgressPhrase() {
+    // ОПРЕДЕЛЯЕМ ТЕКСТ И ЦВЕТ по значению прогресса
+    final String emoji;
+    final String line1; // главная фраза
+    final String line2; // пояснение
+    final Color color;
+
+    final p = widget.progressPercent;
+
+    if (p == null) {
+      // Первая тренировка — нет с чем сравнивать
+      emoji = '🚀';
+      line1 = 'Первый шаг сделан!';
+      line2 = 'Следующая тренировка покажет твой прогресс';
+      color = const Color(0xFF2979FF);
+    } else if (p >= 10) {
+      emoji = '🔥';
+      line1 = 'Ты стал на ${p.toStringAsFixed(1)}% сильнее!';
+      line2 = 'Феноменальный результат - продолжай в том же духе';
+      color = const Color(0xFF69FF47);
+    } else if (p >= 3) {
+      emoji = '💪';
+      line1 = 'Ты стал на ${p.toStringAsFixed(1)}% сильнее!';
+      line2 = 'Стабильный рост - именно так строится сила';
+      color = const Color(0xFF00E5FF);
+    } else if (p >= 0.5) {
+      emoji = '📈';
+      line1 = 'Ты стал на ${p.toStringAsFixed(1)}% сильнее!';
+      line2 = 'Маленький шаг - но в правильном направлении';
+      color = const Color(0xFF2979FF);
+    } else if (p > -0.5) {
+      // Практически без изменений
+      emoji = '⚖️';
+      line1 = 'Результат как в прошлый раз';
+      line2 = 'Плато - нормально. Завтра будет лучше';
+      color = const Color(0xFFFFD740);
+    } else if (p > -5) {
+      emoji = '😤';
+      line1 = 'Не сдавайся - прорвёмся!';
+      line2 = 'Небольшой спад — это часть пути к росту';
+      color = Colors.orange;
+    } else {
+      // Сильное падение — возможно, усталость
+      emoji = '❤️';
+      line1 = 'Бывают и такие дни — это нормально';
+      line2 = 'Восстановись и вернись сильнее';
+      color = Colors.orange;
+    }
+    print('p = "$p" и прогресс персент${widget.progressPercent}. РЕЗУЛЬТАТ С КОТОРЫМ ПРОИСХОДИТ СРАВНЕНИЕ');
+
+    return FadeTransition(
+      opacity: _statsOpacity,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withOpacity(0.25)),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    line1,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    line2,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

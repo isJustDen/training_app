@@ -1913,7 +1913,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   }
 
 // ВСПОМОГАТЕЛЬНЫЙ МЕТОД — НАВИГАЦИЯ НА ЭКРАН ЗАВЕРШЕНИЯ
-  void _navigateToComplete (Duration duration) {
+  void _navigateToComplete (Duration duration) async {
     HapticFeedback.heavyImpact();
     if (!mounted) return;
       // Считаем статистику
@@ -1926,7 +1926,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
         }
       }
 
-      Navigator.of(context).pushReplacement(
+    // ВЫЧИСЛЯЕМ ПРОГРЕСС относительно предыдущей тренировки
+    final progressPercent = await _calculateProgress(totalVolume);
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => WorkoutCompleteScreen(
             templateName: widget.template.name,
@@ -1934,6 +1938,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             totalSets: totalSets,
             totalExercise: _exercisesProgress.length,
             totalVolume: totalVolume,
+            progressPercent: progressPercent,
           ),
         ),
       );
@@ -1953,4 +1958,60 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       if (mounted) setState(() => _isDimmed = true);
     });
   }
+
+  // СЧИТАЕМ ОБЪЁМ ЧЕРЕЗ completedSets (фактические данные)
+  double _calcActualVolume(WorkoutHistory h) {
+    double vol = 0;
+    for (var ex in h.exercises) {
+      if (ex.completedSets.isNotEmpty) {
+        for (var set in ex.completedSets) {
+          final reps = (set['reps'] as num).toDouble();
+          final weight = (set['weight'] as num).toDouble();
+          vol += reps * weight;
+        }
+      }
+    }
+    return vol;
+  }
+
+  // НОВЫЙ МЕТОД — считает % изменения объёма относительно прошлой тренировки
+  Future<double?> _calculateProgress(double currentVolume) async {
+    try{
+      final history = await StorageService.loadHistory();
+
+
+      // ОТЛАДКА — посмотри что в истории
+      print('=== CALCULATE PROGRESS ===');
+      print('Ищем templateId: ${widget.template.id}');
+      print('Всего записей в истории: ${history.length}');
+      for (var h in history) {
+        print('  История: id=${h.templateId}, date=${h.date}, volume=${h.totalVolume}');
+      }
+
+
+      // Ищем предыдущую тренировку по тому же шаблону
+      final sameTemplate  = history
+        .where((h) => h.templateId == widget.template.id)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));// Новые первыми
+
+      print('Найдено по templateId: ${sameTemplate.length}');
+
+
+      if (sameTemplate.length < 2) return null; // Первая тренировка
+
+      final prevVolume = _calcActualVolume(sameTemplate[1]);
+
+      print('currentVolume=$currentVolume, prevVolume=$prevVolume');
+
+      if (prevVolume == 0) return null;// Нет данных
+
+      // Процент изменения: (новый - старый) / старый * 100
+      return ((currentVolume - prevVolume)/prevVolume)*100;
+    } catch (e) {
+      print('Ошибка: $e');
+      return null;
+    }
+  }
+
 }
