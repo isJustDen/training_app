@@ -30,8 +30,9 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
   List<int> _selectedExerciseIndices = []; // Для multi-select
   bool _isSelectionMode = false; // Режим выбора упражнений для круга
   bool _isCustomDay = false;
-  @override
+  bool _hasUnsavedChanges = false;
 
+  @override
   void initState(){
     super.initState();
     // Создаем копию шаблона для редактирования
@@ -47,27 +48,46 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         .where((o) => o['value'] != '__custom__')
         .map((o) => o['value'] as String)
         .contains(_template.dayOfWeek);
+
+    _hasUnsavedChanges = false;
   }
 
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Редактирование тренировки'),
-        actions: [
-          IconButton(
-            icon:  const Icon(Icons.save),
-            onPressed: _saveChanges,
-            tooltip: 'Сохранить',
-          )
-        ],
-      ),
-      body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
+    return WillPopScope (
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Редактирование тренировки'),
+          actions: [
+            IconButton(
+              icon:  const Icon(Icons.save),
+              onPressed: _saveChanges,
+              tooltip: 'Сохранить',
+            )
+          ],
+        ),
+        body: _buildBody(),
+        floatingActionButton: FloatingActionButton(
           onPressed: _addExercise,
           child: const Icon(Icons.add),
+        ),
       ),
     );
+
+  }
+
+  @override
+  void didUpdateWidget (covariant EditTemplateScreen oldWidget){
+    super.didUpdateWidget(oldWidget);
+    if (widget.template != oldWidget.template) {
+      setState(() {
+        _template = widget.template.copyWith();
+        _nameController.text = _template.name;
+        _dayController.text = _template.dayOfWeek;
+        _hasUnsavedChanges = false;
+      });
+    }
   }
 
 // МЕТОД ДЛЯ ПОСТРОЕНИЯ ОСНОВНОГО СОДЕРЖИМОГО
@@ -130,6 +150,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
             setState(() {
               _template = _template.copyWith(name: value);
             });
+            _markUnsavedChanges();
           }
         ),
         const SizedBox(height: 16),
@@ -427,6 +448,8 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       _template.addExercise(newExercise);
     });
 
+    _markUnsavedChanges();
+
     // СРАЗУ ОТКРЫВАЕМ РЕДАКТИРОВАНИЕ
     _editExercise(_template.exercises.length - 1);
   }
@@ -444,6 +467,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
               setState(() {
                 _template.exercises[index] = updatedExercise;
               });
+              _markUnsavedChanges();
             },
             onCancel: (){
               Navigator.pop(context);
@@ -564,6 +588,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
 
             _template = _template.copyWith(exercises: exercises);
           });
+          _markUnsavedChanges();
         },
 
       buildDefaultDragHandles: false,
@@ -595,6 +620,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                   setState(() {
                     _template.removeExercise(index);
                   });
+                  _markUnsavedChanges();
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
@@ -624,6 +650,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       updatedAt: DateTime.now(),
     );
 
+    _hasUnsavedChanges = false;
     // ВОЗВРАЩАЕМСЯ НАЗАД
     Navigator.pop(context, updatedTemplate);
   }
@@ -699,6 +726,8 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
       _selectedExerciseIndices.clear();
     });
 
+    _markUnsavedChanges();
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Создан круг с ${count} упражнений(ия)'),
@@ -729,6 +758,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                     ),
                   );
                 });
+                _markUnsavedChanges();
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -881,12 +911,14 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
                                       _dayController.text = '';
                                       _template = _template.copyWith(dayOfWeek: '');
                                     });
+                                    _markUnsavedChanges();
                                   } else {
                                     setState(() {
                                       _isCustomDay = false;
                                       _template = _template.copyWith(dayOfWeek: value);
                                       _dayController.text = value;
                                     });
+                                    _markUnsavedChanges();
                                   }
                                 },
                               ),
@@ -903,5 +935,42 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
         );
       },
     );
+  }
+
+  //МЕТОД ДЛЯ ОТМЕТКИ ИЗМЕНЕНИЙ
+  void _markUnsavedChanges () {
+    if (!_hasUnsavedChanges) {
+      setState(() {
+        _hasUnsavedChanges = true;
+      });
+    }
+  }
+
+  //МЕТОД ДЛЯ ОБРАБОТКИ НАЗАД
+  Future<bool> _onWillPop() async {
+    if (_hasUnsavedChanges) {
+      final shouldPop = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Несохраненные изменения'),
+          content: const Text('У вас есть несохраненные изменения. Выйти без сохранения?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Отмена'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text("Выйти"),
+            ),
+          ],
+        ),
+      );
+      return shouldPop ?? false;
+    }
+    return true;
   }
 }
