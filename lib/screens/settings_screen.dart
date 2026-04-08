@@ -127,8 +127,6 @@ class _SettingsScreenState extends State<SettingsScreen>{
                         title: const Text('Очистить статистику'),
                         subtitle: const Text('Удалить историю тренировок (шаблоны сохранятся)'),
                         onTap: () {
-                          // Закрываем ExpansionTile перед показом диалога
-                          Navigator.of(context).pop();
                           _showClearStatsDialog();
                         },
                       ),
@@ -145,7 +143,6 @@ class _SettingsScreenState extends State<SettingsScreen>{
                         title: const Text('Сбросить шаблоны'),
                         subtitle: const Text('Восстановить заводские шаблоны тренировок'),
                         onTap: () {
-                          Navigator.of(context).pop();
                           _showResetTemplatesDialog();
                         },
                       ),
@@ -162,7 +159,6 @@ class _SettingsScreenState extends State<SettingsScreen>{
                         title: const Text('Сбросить категории'),
                         subtitle: const Text('Восстановить категории Зал и Улица'),
                         onTap: () async {
-                          Navigator.of(context).pop();
                           await StorageService.resetCategoriesToDefault();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -193,7 +189,6 @@ class _SettingsScreenState extends State<SettingsScreen>{
                         ),
                         subtitle: const Text('Удалить ВСЕ данные и вернуть исходное состояние'),
                         onTap: () {
-                          Navigator.of(context).pop();
                           _showFactoryResetDialog();
                         },
                       ),
