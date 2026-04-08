@@ -95,50 +95,110 @@ class _SettingsScreenState extends State<SettingsScreen>{
               // РАЗДЕЛ: ДАННЫЕ
               _buildSectionHeader('Данные'),
 
-              // КНОПКА ОЧИСТКИ СТАТИСТИКИ
               Card(
-                child: ListTile(
-                  leading: Icon(Icons.assessment, color:Theme.of(context).colorScheme.error),
-                  title: const Text('Очистить статистику'),
-                  subtitle: const Text('Удалить историю тренировок (шаблоны сохранятся)'),
-                  onTap: _showClearStatsDialog,
-                ),
-              ),
-
-              // КНОПКА СБРОСА ШАБЛОНОВ
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.refresh, color: Theme.of(context).colorScheme.error),
-                  title: const Text('Сбросить шаблоны'),
-                  subtitle: const Text('Восстановить заводские шаблоны тренировок'),
-                  onTap: _showResetTemplatesDialog,
-                ),
-              ),
-
-              // КНОПКА ПОЛНОГО СБРОСА
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
-                  title: const Text('Сброс до заводских настроек'),
-                  subtitle: const Text('Удалить ВСЕ данные и вернуть исходное состояние'),
-                  onTap: _showFactoryResetDialog,
-                ),
-              ),
-
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.category_rounded, color: Theme.of(context).colorScheme.error),
-                  title: const Text('Сбросить категории'),
-                  subtitle: const Text('Восстановить категории Зал и Улица'),
-                  onTap: () async {
-                    await StorageService.resetCategoriesToDefault();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Категории восстановлены'),
-                        backgroundColor: Colors.green,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    dividerColor: Colors.transparent,
+                  ),
+                  child: ExpansionTile(
+                    leading: Icon(
+                      Icons.delete_sweep_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: const Text(
+                      'Управление данными',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    subtitle: const Text(
+                      'Очистка и сброс информации',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.arrow_drop_down),
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                    childrenPadding: const EdgeInsets.only(bottom: 8),
+                    children: [
+                      // ОЧИСТКА СТАТИСТИКИ
+                      ListTile(
+                        leading: Icon(
+                          Icons.assessment,
+                          color: Theme.of(context).colorScheme.error.withOpacity(0.8),
+                          size: 22,
+                        ),
+                        title: const Text('Очистить статистику'),
+                        subtitle: const Text('Удалить историю тренировок (шаблоны сохранятся)'),
+                        onTap: () {
+                          // Закрываем ExpansionTile перед показом диалога
+                          Navigator.of(context).pop();
+                          _showClearStatsDialog();
+                        },
                       ),
-                    );
-                  },
+
+                      const Divider(height: 1, indent: 56),
+
+                      // СБРОС ШАБЛОНОВ
+                      ListTile(
+                        leading: Icon(
+                          Icons.refresh,
+                          color: Theme.of(context).colorScheme.error.withOpacity(0.8),
+                          size: 22,
+                        ),
+                        title: const Text('Сбросить шаблоны'),
+                        subtitle: const Text('Восстановить заводские шаблоны тренировок'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _showResetTemplatesDialog();
+                        },
+                      ),
+
+                      const Divider(height: 1, indent: 56),
+
+                      // СБРОС КАТЕГОРИЙ
+                      ListTile(
+                        leading: Icon(
+                          Icons.category_rounded,
+                          color: Theme.of(context).colorScheme.error.withOpacity(0.8),
+                          size: 22,
+                        ),
+                        title: const Text('Сбросить категории'),
+                        subtitle: const Text('Восстановить категории Зал и Улица'),
+                        onTap: () async {
+                          Navigator.of(context).pop();
+                          await StorageService.resetCategoriesToDefault();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Категории восстановлены'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+
+                      const Divider(height: 1, indent: 56),
+
+                      // ПОЛНЫЙ СБРОС (выделяется красным)
+                      ListTile(
+                        leading: Icon(
+                          Icons.delete_forever,
+                          color: Theme.of(context).colorScheme.error,
+                          size: 22,
+                        ),
+                        title: Text(
+                          'Полный сброс',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: const Text('Удалить ВСЕ данные и вернуть исходное состояние'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _showFactoryResetDialog();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
