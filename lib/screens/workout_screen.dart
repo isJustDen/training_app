@@ -396,8 +396,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                               ],
                             ),
                           ),
-                          if (progress.completedSetsCount > 0)
-                            _buildDeleteSetButton(index, progress),
                         ],
                       ),
 
@@ -500,10 +498,13 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                             if (!progress.isCompleted) ... [
                               const SizedBox(width: 12),
                               Expanded(
-                                flex: 2,
+                                flex: 3,
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    if (progress.completedSetsCount > 0)
+                                      _buildDeleteSetButton(index, progress),
+                                    const SizedBox(width: 10),
                                     if (_shouldShowTimer(exercise)) ...[
                                       // КНОПКА ЗАВЕРШЕНИЯ ПОДХОДА
                                       IconButton(
@@ -2181,9 +2182,9 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       message: 'Удалить последний подход',
       child: InkWell(
         onTap: () => _deleteLastSet(index),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: Colors.red.withOpacity(0.08),
             borderRadius: BorderRadius.circular(8),
@@ -2192,16 +2193,16 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.delete_outline_rounded,
+              Icon(Icons.delete_forever_rounded,
               size: 16,
               color: Colors.red.shade400,
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: 1),
               // СЧЁТЧИК — сколько подходов выполнено (понятно что именно удалится)
               Text(
                 '${progress.completedSetsCount}',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Colors.red.shade400,
                 ),
