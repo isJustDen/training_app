@@ -821,9 +821,38 @@ class _SettingsScreenState extends State<SettingsScreen>{
               _buildImportRow(Icons.fitness_center, 'Тренировки', result.templatesCount),
               _buildImportRow(Icons.history, 'Записей истории', result.historyCount),
               _buildImportRow(Icons.folder, 'Категорий', result.categoriesCount),
+              _buildImportRow(Icons.straighten,     'Замеров',          result.measurementsCount),
 
               const SizedBox(height: 12),
 
+              if (result.photosSkipped) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.photo_library_outlined,
+                          size: 14, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Фото из замеров (${result.measurementsWithPhotos} записей) '
+                              'не включены в бэкап — они хранятся только на устройстве.',
+                          style: const TextStyle(fontSize: 12, color: Colors.orange),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 12),
               // ПРЕДУПРЕЖДЕНИЕ
               Container(
                 padding: const EdgeInsets.all(10),
