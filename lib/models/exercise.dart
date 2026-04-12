@@ -101,8 +101,7 @@ class Exercise {
         try {
           // byName кидает исключение если такого значения нет — ловим его
           groups.add(MuscleGroup.values.byName(name.toString()));
-        } catch (e){
-          print('ОШИБКА: === fromMap: ${map}');
+        } catch (_){
         }
       }
     }

@@ -200,7 +200,7 @@ class MeasurementDetailScreen  extends StatelessWidget{
                     const SizedBox(width: 4),
                   ],
                   Text(
-                    '${isPositive ? '+' : ''}${change!.toStringAsFixed(1)}%',
+                    '${isPositive ? '+' : ''}${change.toStringAsFixed(1)}%',
                     style: TextStyle(
                       color: changeColor,
                       fontSize: 11,
@@ -324,8 +324,9 @@ class MeasurementDetailScreen  extends StatelessWidget{
       await MeasurementService.delete(measurement.id);
 
       // Проверяем, что экран всё ещё существует (не закрыт)
-      if (context.mounted)
+      if (context.mounted) {
         Navigator.pop(context); // Закрываем текущий экран и возвращаемся к списку
+      }
     }
   }
 }

@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/sound_service.dart';
-import 'dart:ui' show FontFeature;
 
 // ВИДЖЕТ СЕКУНДОМЕРА ДЛЯ УПРАЖНЕНИЙ НА ВРЕМЯ
 class StopwatchWidget  extends StatefulWidget{

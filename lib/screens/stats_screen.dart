@@ -32,29 +32,17 @@ class _StatsScreenState extends State<StatsScreen>{
   bool _isLoading = true;
 
   // ПЕРИОД ДЛЯ ФИЛЬТРАЦИИ (дни)
-  int _filterDays = 30;
+  final int _filterDays = 30;
 
   // ИСТОРИЯ ПО КАЖДОМУ УПРАЖНЕНИЮ (для раскрывающегося списка)
   Map<String, List<Map<String, dynamic>>> _exerciseHistory = {};
-  Set<String> _expandedExercises = {}; // КАКИЕ КАРТОЧКИ РАСКРЫТЫ
+  final Set<String> _expandedExercises = {}; // КАКИЕ КАРТОЧКИ РАСКРЫТЫ
 
 
   @override
   void initState(){
     super.initState();
     _loadData();
-  }
-
-  // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ УДАЛЕНИЯ ИЗ ШАБЛОНОВ
-  Future <void> _removeExerciseFromTemplates(String exerciseName) async {
-    final templates = await StorageService.loadTemplates();
-    final updatedTemplates = templates.map((template) {
-      final updatedExercises = template.exercises
-          .where((e) => e.name != exerciseName)
-          .toList();
-      return template.copyWith(exercises: updatedExercises);
-    }).toList();
-    await StorageService.saveTemplates(updatedTemplates);
   }
 
   // ЗАГРУЗКА ДАННЫХ
@@ -176,7 +164,7 @@ class _StatsScreenState extends State<StatsScreen>{
         slivers: [
           AppHeader(
             title: 'Статистика',
-            subtitle: '${_exerciseStats.length} упражнений · последние ${_filterDays} дней',
+            subtitle: '${_exerciseStats.length} упражнений · последние $_filterDays дней',
             actions: [
               headerAction(
                 icon: Icons.refresh_rounded,
@@ -240,7 +228,7 @@ class _StatsScreenState extends State<StatsScreen>{
                   await _loadData();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('Упражнение "${exerciseName}" удалено. Перезагрузите приложение для сохранения'),
+                        content: Text('Упражнение "$exerciseName" удалено. Перезагрузите приложение для сохранения'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -250,31 +238,6 @@ class _StatsScreenState extends State<StatsScreen>{
             ),
           ],
         ),
-    );
-  }
-
-  // ОСНОВНОЕ СОДЕРЖИМОЕ
-  Widget _buildContent(){
-    if (_isLoading){
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_workoutHistory.isEmpty){
-      return _buildEmptyState();
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ОБЩАЯ СТАТИСТИКА
-          _buildOverallStats(),
-          const SizedBox(height: 24),
-
-          // СТАТИСТИКА ПО УПРАЖНЕНИЯМ
-          _buildExercisesState(),
-        ],
-      ),
     );
   }
 
@@ -309,9 +272,7 @@ class _StatsScreenState extends State<StatsScreen>{
   // ОБЩАЯ СТАТИСТИКА
   Widget _buildOverallStats(){
     final totalWorkouts = _workoutHistory.length;
-    final totalVolume = _workoutHistory.fold<double>(
-      0, (sum, workout) => sum + workout.totalVolume
-    );
+
 
     // ФИЛЬТРУЕМ — только реальные тренировки (duration > 0)
     final validWorkouts = _workoutHistory
@@ -428,7 +389,7 @@ class _StatsScreenState extends State<StatsScreen>{
           final stats = entry.value;
 
           return _buildExerciseStatsCard(exerciseName, stats);
-        }).toList(),
+        }),
       ],
     );
   }
@@ -772,7 +733,7 @@ class _StatsScreenState extends State<StatsScreen>{
 
                 final label = isTimeBased
                     ? '${i+1}: ${_formatSeconds(reps)}'
-                    : '${i + 1}: ${reps}×${weight.toStringAsFixed(1)}кг';
+                    : '${i + 1}: $reps×${weight.toStringAsFixed(1)}кг';
                 return Container(
                   padding:
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -827,9 +788,9 @@ class _StatsScreenState extends State<StatsScreen>{
     if (seconds <= 0) return '0 секунд';
     final m = seconds ~/ 60;
     final s = seconds % 60;
-    if (m == 0) return '${s} сек';
-    if (s == 0) return '${m} мин';
-    return '${m}: ${s.toString().padLeft(2, '0')}';
+    if (m == 0) return '$s сек';
+    if (s == 0) return '$m мин';
+    return '$m: ${s.toString().padLeft(2, '0')}';
   }
 }
 

@@ -82,8 +82,7 @@ class _TimerWidgetState extends State<TimerWidget>{
         body: 'Отдых после ${widget.exerciseName} завершен. Возвращайтесь к тренировке!',
         context: context,
       );
-    } catch (e) {
-      print('Ошибка показа уведомления: $e');
+    } catch (_) {
     }
   }
 

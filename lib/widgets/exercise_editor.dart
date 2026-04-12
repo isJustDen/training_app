@@ -103,16 +103,6 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
     });
   }
 
-  // ПЕРЕКЛЮЧЕНИЕ ГРУППЫ МЫШЦ
-  void _toggleMuscleGroup(MuscleGroup group){
-    setState(() {
-      if (_selectedMuscleGroups.contains(group)){
-        _selectedMuscleGroups.remove(group);
-      } else {
-        _selectedMuscleGroups.add(group);
-      }
-    });
-  }
   @override
   Widget build(BuildContext context){
     return AlertDialog(
@@ -344,32 +334,6 @@ class _ExerciseEditorState extends State<ExerciseEditor> {
       ],
     );
   }
-
-  // СЕТКА ВЫБОРА ГРУПП МЫШЦ
-  Widget _buildMuscleGroupSelector(){
-        return Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: MuscleGroup.values.map((group) {
-            final isSelected = _selectedMuscleGroups.contains(group);
-            return FilterChip(
-              // FilterChip — чип с состоянием selected/unselected
-                label: Text(
-                  '${MuscleGroupInfo.getEmoji(group)} ${MuscleGroupInfo.getName(group)}',
-                  style: const TextStyle(fontSize: 11),
-                ),
-                selected: isSelected,
-                onSelected: (_) => _toggleMuscleGroup(group),
-                // Цвет зависит от выбранного/невыбранного состояния
-                selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                checkmarkColor: Theme.of(context).colorScheme.primary,
-                labelPadding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            );
-          }).toList(),
-        );
-  }
-
 
   // ОБРАБОТЧИК СОХРАНЕНИЯ
   void _handleSave(BuildContext context) async {

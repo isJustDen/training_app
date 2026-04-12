@@ -26,7 +26,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
   final Map<String, TextEditingController> _repsControllers = {};  // Для повторений (только силовые)
 
   final List<Map<String, dynamic>> _customFields = []; //Кастомные поля, добавленные пользователем:
-  List<String> _photoPath = []; // Пути к выбранным фотографиям
+  final List<String> _photoPath = []; // Пути к выбранным фотографиям
   bool _isSaving = false; // Флаг сохранения (чтобы не было двойного нажатия)
 
   //ИНИЦИАЛИЗАЦИЯ ПРИ СОЗДАНИИ
@@ -581,7 +581,8 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
 
     setState(() => _isSaving = false);
 
-    if(mounted)
+    if(mounted) {
       Navigator.pop(context);
+    }
   }
 }

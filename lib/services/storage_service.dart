@@ -4,10 +4,8 @@ import 'dart:convert';
 import 'package:fitflow/models/workout_category.dart';
 import 'package:fitflow/models/workout_session.dart';
 import 'package:fitflow/services/workout_presets.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/exercise.dart';
 import '../models/workout_template.dart';
 import '../models/workout_history.dart';
 import 'exercise_database.dart';
@@ -71,7 +69,6 @@ class StorageService {
       return templates;
     } catch (e){
       // ЕСЛИ ОШИБКА ПАРСИНГА
-      print('Ошибка парсинга $e');
       return WorkoutPresets.getDefaultTemplates();
     }
   }

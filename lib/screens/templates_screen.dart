@@ -2,13 +2,11 @@
 
 import 'package:fitflow/screens/workout_generator_screen.dart';
 
-import '../models/exercise.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_template.dart';
 import '../services/storage_service.dart';
 import 'edit_template_screen.dart';
 import 'workout_screen.dart';
-import 'stats_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
 
@@ -357,41 +355,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
-  // МЕТОД ДЛЯ ОЧИСТКИ ВСЕХ ДАННЫХ
-  void _clearData() async{
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Очистите все данные?'),
-          content: const Text('Это действие удалит все тренировки, Вы не сможете их восстановить'),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Отмена'),
-            ),
-            ElevatedButton(
-                onPressed: () async{
-                // ОЧИЩАЕМ ХРАНИЛИЩЕ
-                  await StorageService.clearAllData();
-
-                  // ОЧИЩАЕМ ЛОКАЛЬНЫЙ СПИСОК
-                  setState(() {
-                    _templates.clear();
-                  });
-
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-
-                ),
-                child: const Text('Очистить'),
-            ),
-          ],
-        ),
-    );
-  }
-
   //МЕТОД ДЛЯ ЗАПУСКА ТРЕНИРОВКИ:
   void _startWorkout(WorkoutTemplate template){
     Navigator.push(
@@ -402,31 +365,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     ).then((_) async {
       await _loadTemplates();
     });
-  }
-
-//МЕТОД СТАТИСТИКИ
-  void _openStats(){
-    // Собираем все упражнения из всех шаблонов
-    List<Exercise> allExercises = [];
-    for (var template in _templates) {
-      allExercises.addAll(template.exercises);
-    }
-    // Убираем дубликаты по названию
-    Map<String, Exercise> uniqueExercises = {};
-    for (var exercise in allExercises){
-      if (!uniqueExercises.containsKey(exercise.name)) {
-        uniqueExercises[exercise.name] = exercise;
-      }
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => StatsScreen(
-          currentExercises: uniqueExercises.values.toList(),
-          ),
-      ),
-    );
   }
 }
 

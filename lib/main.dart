@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../services/notification_service.dart';
 import 'package:flutter/material.dart';
-import 'screens/templates_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/home_screen.dart';
@@ -88,9 +87,7 @@ class WorkoutApp extends StatelessWidget {
   Future<void> _initNotifications() async {
     try{
       await NotificationService().initialize();
-      final hasPermission = await NotificationService().requestPermissions();
-    }catch(e){
-      print('Ошибка инициализации уведомлений: $e');
+    }catch(_){
     }
   }
 
@@ -100,12 +97,9 @@ class WorkoutApp extends StatelessWidget {
         StorageService.loadTemplates(),
         StorageService.loadHistory(),
       ]);
-    } catch (e) {
-      print('Ошибка загрузки хранилища $e');
+    } catch (_) {
     }
   }
-
-
 
 }
 

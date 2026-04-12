@@ -74,9 +74,7 @@ class SoundService {
         player.dispose();
         _activePlayers.remove(player);
       });
-    } catch (e) {
-      print('Ошибка воспроизведения $assetPath: $e');
-      HapticFeedback.lightImpact();
+    } catch (_) {
     }
   }
 

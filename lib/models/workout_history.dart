@@ -77,6 +77,6 @@ class WorkoutHistory{
 
   @override
   String toString() {
-    return 'WorkoutHistory (date: ${date}, exercises: ${exercises.length}, volume ${totalVolume.toStringAsFixed(1)} кг';
+    return 'WorkoutHistory (date: $date, exercises: ${exercises.length}, volume ${totalVolume.toStringAsFixed(1)} кг';
   }
 }

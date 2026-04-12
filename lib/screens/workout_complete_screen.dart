@@ -194,7 +194,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
   String _formatDuration(int seconds){
     final m = seconds ~/ 60;
     final s = seconds % 60;
-    return '${m}м ${s.toString().padLeft(2, '0')}с';
+    return '$mм ${s.toString().padLeft(2, '0')}с';
   }
 
   //ПОСТРОЕНИЕ ИНТЕРФЕЙСА
@@ -343,8 +343,6 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
 
   //ЗАГОЛОВОК
   Widget _buildTitle() {
-    final minutes = widget.durationSeconds ~/ 60;
-    final seconds = widget.durationSeconds % 60;
     return AnimatedBuilder(
         animation: _heroController, // Появляется вместе с героем
         builder: (context, _) {
@@ -567,7 +565,6 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen>
       line2 = 'Восстановись и вернись сильнее';
       color = Colors.orange;
     }
-    print('p = "$p" и прогресс персент${widget.progressPercent}. РЕЗУЛЬТАТ С КОТОРЫМ ПРОИСХОДИТ СРАВНЕНИЕ');
 
     return FadeTransition(
       opacity: _statsOpacity,

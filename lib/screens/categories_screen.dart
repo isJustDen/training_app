@@ -1,7 +1,6 @@
 //screens/categories_screen.dart
 
 import 'package:fitflow/screens/workout_generator_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/workout_category.dart';
 import '../models/workout_template.dart';

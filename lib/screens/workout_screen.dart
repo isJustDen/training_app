@@ -57,10 +57,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   late DateTime _workoutStartTime;
   List<WorkoutCircle> _workoutCircles = []; // Список кругов
   int _currentCircleIndex = 0; // Текущий круг
-  int _currentExerciseInCircleIndex = 0; // Текущее упражнение в круге
+// Текущее упражнение в круге
   bool _isInCircleMode = false; // Режим выполнения круга
-  int _circleRestTimeRemaining = 0; // Таймер отдыха после круга
-  bool _isCircleResting = false; // Флаг отдыха после круга
 
   Timer? _clockTimer;
 
@@ -309,7 +307,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
         // ПОЛУЧАЕМ ИСТОРИЧЕСКИЕ ДАННЫЕ ДЛЯ ЭТОГО УПРАЖНЕНИЯ
         final lastResult = _lastExerciseResults[exerciseName];
-        final averageStats = _averageStats[exerciseName];
 
         // ОПРЕДЕЛЯЕМ, ПРИНАДЛЕЖИТ ЛИ УПРАЖНЕНИЕ КРУГУ
         final isInCircle = exercise.isInAnyCircle;
@@ -815,7 +812,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               mainAxisSize: MainAxisSize.max,
               children: [
                 const SizedBox(height: 12,),
-                Text( '${minutes}:${seconds.toString().padLeft(2, '0')}',
+                Text( '$minutes:${seconds.toString().padLeft(2, '0')}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
@@ -899,7 +896,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                   ),
                 ),
                 child: Text(
-                  '${setIndex + 1}:  ${reps}×${weight.toStringAsFixed(1)} кг',
+                  '${setIndex + 1}:  $reps×${weight.toStringAsFixed(1)} кг',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1065,16 +1062,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     });
   }
 
-  // ПЕРЕГРУЗКА МЕТОДА ДЛЯ ПРИНЯТИЯ double
-  Future <void> _updateWeightDirect(int index, double weight) async {
-    setState(() {
-      _exercisesProgress[index] = _exercisesProgress[index].copyWith(
-        currentWeight: weight,
-      );
-    });
-    await _saveSession();
-  }
-
   // УВЕЛИЧЕНИЕ КОЛИЧЕСТВА ПОВТОРЕНИЙ НА 1
   void _incrementReps(int index){
     HapticFeedback.mediumImpact();
@@ -1152,8 +1139,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               final minutes = selectedTime ~/ 60;
               final seconds = selectedTime % 60;
               final label = minutes > 0
-                  ? '${minutes}м ${seconds > 0 ? "${seconds} с": ""}'
-                  : '${seconds}с';
+                  ? '$minutesм ${seconds > 0 ? "$seconds с": ""}'
+                  : '$secondsс';
 
               return AlertDialog(
                 title: Row(
@@ -1237,8 +1224,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
             final minutes = selectedTime ~/ 60;
             final seconds = selectedTime % 60;
             final label = minutes > 0
-                ? '${minutes}мин : ${seconds}сек'
-                : '${seconds}сек';
+                ? '$minutesмин : $secondsсек'
+                : '$secondsсек';
 
             return AlertDialog(
               title: const Text('Таймер отдыха'),
@@ -1449,7 +1436,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               // 4. УВЕДОМЛЕНИЕ О ЗАВЕРШЕНИИ ТРЕНИРОВКИ
               await NotificationService().showWorkoutCompleteNotification(
                 title: 'Тренировка завершена!',
-                body: '${widget.template.name}. Продолжительность: ${minutes} минут(ы) ${seconds} секунд(ы)',
+                body: '${widget.template.name}. Продолжительность: $minutes минут(ы) $seconds секунд(ы)',
                 context: context,
               );
 
@@ -1806,7 +1793,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
       if (_workoutCircles.isNotEmpty) {
         _isInCircleMode = true;
         _currentCircleIndex = 0;
-        _currentExerciseInCircleIndex = 0;
 
         // УСТАНАВЛИВАЕМ ТЕКУЩЕЕ УПРАЖНЕНИЕ КАК ПЕРВОЕ В КРУГЕ
         final firstExerciseInCircle = _workoutCircles[0].exercises[0];
@@ -1828,7 +1814,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
     final hoursAgo = elapsed.inHours;
     final minutesAgo = elapsed.inMinutes%60;
     final timeLabel = hoursAgo > 0
-        ? '${hoursAgo}ч ${minutesAgo}мин назад'
+        ? '$hoursAgoч $minutesAgoмин назад'
         : '${elapsed.inMinutes}мин назад';
 
     showDialog(

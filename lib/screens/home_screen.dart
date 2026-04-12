@@ -6,7 +6,6 @@ import 'package:fitflow/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../main.dart';
-import 'templates_screen.dart';
 import 'stats_screen.dart';
 import 'measurements_screen.dart';
 import 'settings_screen.dart';

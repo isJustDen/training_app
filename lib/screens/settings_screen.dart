@@ -1,6 +1,5 @@
 //screens/settings_screen.dart
 
-import 'package:fitflow/screens/templates_screen.dart';
 import 'package:fitflow/services/backup_service.dart';
 import 'package:fitflow/widgets/app_header.dart';
 import 'package:flutter/material.dart';

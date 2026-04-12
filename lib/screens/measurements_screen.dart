@@ -111,12 +111,6 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
         (fromIdx + 1).clamp(0, measurements.length-1 ),
                   measurements.length-1);
 
-    for (final key in measurements[fromIdx].entries.keys) {
-      final newVal = measurements[fromIdx].entries[key]?.value;
-      final oldVal = measurements[toIdx].entries[key]?.value;
-      print('key: $key | new: $newVal | old: $oldVal');
-    }
-
     // Считаем изменения между выбранными замерами
     final changes = measurements.length >= 2
                   ? MeasurementService.compareTwoMeasurements(measurements[fromIdx], measurements[toIdx])
@@ -473,9 +467,6 @@ class  _MeasurementsScreenState extends State<MeasurementsScreen>
 
   //ВИДЖЕТ ВЫБОРА ПЕРИОДА
   Widget _buildPeriodSelector(List<Measurement> measurements){
-    String _fromData(DateTime d) =>
-        '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
-
     return Card(
       child: Padding(
           padding: const EdgeInsetsGeometry.all(12),

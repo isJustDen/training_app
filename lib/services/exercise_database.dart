@@ -112,16 +112,6 @@ class ExerciseDatabase {
     _ExerciseTemplate('Мост',                        [MuscleGroup.glutes, MuscleGroup.lowerBack, MuscleGroup.hamstrings]),
   ];
 
-  // Старый синхронный search оставляем для обратной совместимости
-  static List<_ExerciseTemplate> search (String query){
-    if (query.isEmpty) return [];
-    final lower = query.toLowerCase();
-    return _all //Ищем в статической базе
-        .where((e) => e.name.toLowerCase().contains(lower))
-        .take(8)
-        .toList();
-  }
-
   // ФИЛЬТРАЦИЯ ПО ГРУППАМ МЫШЦ
   // Используется генератором тренировок
   static List<_ExerciseTemplate> getByMyscleGroups(List<MuscleGroup> groups){
@@ -144,7 +134,7 @@ class ExerciseDatabase {
         .toList();
 
     final userExercises = await _loadUserExercises();
-    final fromUser = userExercises //Ищем в статической базе
+    final List<_ExerciseTemplate> fromUser = userExercises //Ищем в статической базе
         .where((e) => e.name.toLowerCase().contains(lower))
     // Исключаем дубликаты — те что уже есть в базе
         .where((e) => !fromBase.any((b) => b.name == e.name))
@@ -154,15 +144,14 @@ class ExerciseDatabase {
     return [...fromBase, ...fromUser];
   }
 
-  // ПОЛУЧИТЬ ВСЕ УПРАЖНЕНИЯ (для полного списка)
-  static List<_ExerciseTemplate> getAll() => List.unmodifiable(_all);
-
   // СОХРАНИТЬ новое упражнение в пользовательскую базу
   static Future<void> saveUserExercise(String name, List<MuscleGroup> muscleGroups) async {
     final existsInBase = _all.any(
     (e) => e.name.toLowerCase() == name.toLowerCase()
     );
-    if (existsInBase) return;
+    if (existsInBase) {
+      return;
+    }
     final userExercises = await _loadUserExercises();
 
     final alredySaved = userExercises.any(
@@ -209,11 +198,6 @@ class ExerciseDatabase {
       }).toList(),
     );
     await prefs.setString(_userExerciseKey, json);
-  }
-
-  // ПОЛУЧИТЬ ВСЕ пользовательские упражнения (для отображения списка)
-  static Future<List<_ExerciseTemplate>> getUserExercises() async {
-    return await _loadUserExercises();
   }
 
   // МЕТОД ДЛЯ УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЬСКОГО УПРАЖНЕНИЯ

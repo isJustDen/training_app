@@ -27,7 +27,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dayController = TextEditingController();
 
-  List<int> _selectedExerciseIndices = []; // Для multi-select
+  final List<int> _selectedExerciseIndices = []; // Для multi-select
   bool _isSelectionMode = false; // Режим выбора упражнений для круга
   bool _isCustomDay = false;
   bool _hasUnsavedChanges = false;
@@ -537,7 +537,6 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
 
             // УПРАЖНЕНИЯ В КРУГЕ
             ...exercises.asMap().entries.map((entry) {
-              final index = entry.key;
               final exercise = entry.value;
 
               // НАХОДИМ ОРИГИНАЛЬНЫЙ ИНДЕКС УПРАЖНЕНИЯ В ОБЩЕМ СПИСКЕ
@@ -730,7 +729,7 @@ class _EditTemplateScreenState extends State<EditTemplateScreen>{
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Создан круг с ${count} упражнений(ия)'),
+        content: Text('Создан круг с $count упражнений(ия)'),
         backgroundColor: Color(0xFF81C784),
       ),
     );
