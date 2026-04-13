@@ -18,7 +18,7 @@
         tools:ignore="ExactAlarm" />
 
     <application
-        android:label="Дневничёк"
+        android:label="FitFlow — Дневник тренировок"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

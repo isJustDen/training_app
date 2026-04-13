@@ -459,8 +459,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                       if (exercise.isTimeBased && !progress.isCompleted)
                         StopwatchWidget(
                           targetSeconds: exercise.targetSeconds,
-                          onTarget: () {
-                            HapticFeedback.heavyImpact();},
                           onStopped: (elapsedSeconds) {
                             _completeTimeBasedSet(index, elapsedSeconds);
                           },
@@ -528,6 +526,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                                             : () => _completeSet(index),
                                         icon: Icon(
                                           Icons.check_circle,
+                                          size: 16,
                                           color: progress.isCompleted ? Colors.grey : Colors.green,
                                         ),
                                         tooltip: 'Завершить подход',
@@ -744,7 +743,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
                         ),
                         child: const Icon(
                           Icons.add,
-                          size: 20,
+                          size: 25,
                           color: Colors.green,
                         ),
                       ),
@@ -812,11 +811,11 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
               mainAxisSize: MainAxisSize.max,
               children: [
                 const SizedBox(height: 12,),
-                Text( '$minutes:${seconds.toString().padLeft(2, '0')}',
+                Text( '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                     letterSpacing: 1.0,
                   ),
                 ),
@@ -1605,7 +1604,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
 
   // СОХРАНЯЕМ ТЕКУЩИЙ ПРОГРЕСС В СЕССИЮ
   Future<void> _saveSession() async {
-    HapticFeedback.lightImpact();
     // Собираем completedSets для каждого упражнения
     final completedSets = <String, List<Map<String, dynamic>>>{};
     final currentWeights = <String, double> {};
@@ -1951,7 +1949,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>{
   // ЗАПУСК ТАЙМЕРА ЗАТЕМНЕНИЯ
   void _resetDimTimer() {
     _dimTimer?.cancel();
-    HapticFeedback.vibrate();
     if(_isDimmed){
       setState(() => _isDimmed = false);// снимаем затемнение при касании
     }

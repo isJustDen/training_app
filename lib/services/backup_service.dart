@@ -171,7 +171,8 @@ class BackupService {
         await prefs.setString('app_settings', data['settings'] as String);
       }
 
-      return BackupResult.success(message: 'Данные восстановлены');
+      return BackupResult.success(message: 'Данные восстановлены!\n'
+          'Перезагрузите приложение для правильного отображения');
     } catch (e) {
       return BackupResult.error('Ошибка при восстановлении: $e');
     }

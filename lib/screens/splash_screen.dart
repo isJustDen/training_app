@@ -330,18 +330,18 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   // Название приложения
                   Text(
-                    'Дневничёк',
+                    'FitFlow',
                     style: TextStyle(
-                      fontSize: 42,
+                      fontSize: 52,
                       fontWeight: FontWeight.w800,
                       color: Theme.of(context).colorScheme.onSurface,
-                      letterSpacing: 2,
+                      letterSpacing: 5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   // Слоган
                   Text(
-                    'Твоя персональная записная книжка',
+                    'Твоя персональная записная книга',
                     style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),

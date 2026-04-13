@@ -13,25 +13,25 @@ class SoundService {
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА НАЧАЛА ТАЙМЕРА
   static Future<void> playTimerStartSound(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
-    await _playSound('sounds/start_timer.mp3');
+    await _playSound('sounds/start_timer.wav');
   }
 
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА ЗАВЕРШЕНИЯ ТАЙМЕРА
   static Future<void> playTimerSound(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
-    await _playSound('sounds/timer_beep.mp3');
+    await _playSound('sounds/timer_beep.wav');
   }
 
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА УСПЕШНОГО СЕКУНДОМЕРА
   static Future<void> playTimerSoundStopwatch(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
-    await _playSound('sounds/stopwatch_beep.mp3');
+    await _playSound('sounds/stopwatch_beep.wav');
   }
 
   // ВОСПРОИЗВЕДЕНИЕ ЗВУКА ЗАВЕРШЕНИЯ ТРЕНИРОВКИ
   static Future<void> playWorkoutCompleteSound(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
-    await _playSound('sounds/workout_complete.mp3');
+    await _playSound('sounds/workout_complete.wav');
   }
 
   // ЗВУК ЗАПУСКА ПРИЛОЖЕНИЯ
@@ -44,15 +44,8 @@ class SoundService {
   // ЗВУК ВЫХОДА ИЗ ПРИЛОЖЕНИЯ
   static Future<void> playAppExitSound(BuildContext context) async {
     if (!_isSoundEnabled(context)) return;
-    await _playSound('sounds/app_exit.mp3');
+    await _playSound('sounds/app_exit.wav');
   }
-
-// ЗВУК ПЕРЕКЛЮЧЕНИЯ ВКЛАДКИ (короткий, < 1 сек)
-  static Future<void> playTabSwitchSound(BuildContext context) async {
-    if (!_isSoundEnabled(context)) return;
-    await _playSound('sounds/tab_switch.mp3');
-  }
-
 
   // УНИВЕРСАЛЬНЫЙ МЕТОД ВОСПРОИЗВЕДЕНИЯ
   static Future<void> _playSound(String assetPath) async {

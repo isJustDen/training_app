@@ -120,7 +120,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
       backgroundColor: colorScheme.primary,
       flexibleSpace: FlexibleSpaceBar(
         title: const Text(
-          'Тренировки',
+          'Дневник тренировок',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
         ),
         background: Container(
@@ -145,7 +145,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Дневничёк',
+                          'FitFlow',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -317,7 +317,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                   Text(
                     category.name,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -336,12 +336,12 @@ class _CategoriesScreenState extends State<CategoriesScreen>
           // КНОПКИ РЕДАКТИРОВАНИЯ/УДАЛЕНИЯ
           IconButton(
             onPressed: () => _editCategory(category),
-            icon: Icon(Icons.edit_rounded, size: 18, color: color,),
+            icon: Icon(Icons.edit_rounded, size: 15, color: color,),
             tooltip: 'Редактировать',
           ),
           IconButton(
             onPressed: () => _deleteCategory(category),
-            icon: Icon(Icons.delete_rounded, size: 18,
+            icon: Icon(Icons.delete_rounded, size: 15,
               color: Theme.of(context).colorScheme.error),
             tooltip: 'Удалить',
           ),
@@ -384,14 +384,14 @@ class _CategoriesScreenState extends State<CategoriesScreen>
               ),
               // КНОПКА ДОБАВИТЬ ТРЕНИРОВКУ В ГРУППУ
               IconButton(
-                icon: Icon(Icons.add_rounded, size: 24, color: categoryColor),
+                icon: Icon(Icons.add_rounded, size: 20, color: categoryColor),
                 onPressed: () => _addTemplateToGroup(category, group),
                 tooltip: 'Добавить тренировку',
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
               IconButton(
-                icon: Icon(Icons.delete_outline_rounded, size: 22,
+                icon: Icon(Icons.delete_outline_rounded, size: 15,
                     color: Theme.of(context).colorScheme.error),
                 onPressed: () => _deleteGroup(category, group),
                 padding: EdgeInsets.zero,
@@ -454,8 +454,8 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                   Text(
                     template.name,
                     style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
@@ -471,23 +471,26 @@ class _CategoriesScreenState extends State<CategoriesScreen>
 
             // КНОПКИ ДЕЙСТВИЙ
             IconButton(
-              icon: const Icon(Icons.play_arrow_rounded, color: Colors.green, size: 25,),
+              icon: const Icon(Icons.play_arrow_rounded, color: Colors.green, size: 35,),
                 onPressed: () => _startWorkout(template),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
+              tooltip: 'Запустить тренировку',
             ),
             IconButton(
-              icon: Icon(Icons.edit_rounded, color:Theme.of(context).colorScheme.onSurfaceVariant, size: 20,),
+              icon: Icon(Icons.edit_rounded, color:Theme.of(context).colorScheme.onSurfaceVariant, size: 15,),
               onPressed: () => _editTemplate(template),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
+              tooltip: 'Редактировать тренировку',
             ),
             // УБРАТЬ ИЗ ГРУППЫ (не удалять тренировку)
             IconButton(
-              icon: Icon(Icons.remove_circle_outline_rounded, color: Theme.of(context).colorScheme.error, size: 20,),
+              icon: Icon(Icons.remove_circle_outline_rounded, color: Theme.of(context).colorScheme.error, size: 15,),
               onPressed: () => _removeFromGroup(category, group, template),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
+              tooltip: 'Удалить из категории',
             ),
           ],
         ),
@@ -550,15 +553,15 @@ class _CategoriesScreenState extends State<CategoriesScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.green, size: 30),
+                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.green, size: 35),
                   onPressed: () => _startWorkout(t),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_rounded, size: 23),
+                  icon: const Icon(Icons.edit_rounded, size: 15),
                   onPressed: () => _editTemplate(t),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_rounded, size: 23, color: Theme.of(context).colorScheme.error),
+                  icon: Icon(Icons.delete_rounded, size: 15, color: Theme.of(context).colorScheme.error),
                   onPressed: () => _deleteTemplate(t),
                 ),
               ],
