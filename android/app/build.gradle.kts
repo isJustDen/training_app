@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.training_app"
+    namespace = "com.andromeda.fitflow"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

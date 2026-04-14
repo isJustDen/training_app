@@ -472,10 +472,8 @@ class _SettingsScreenState extends State<SettingsScreen>{
 
   //ПОДДЕРЖАТЬ АВТОРА РАЗДЕЛ
   void _showSupportDialog() {
-    final cardNumber = '';
-    final sbpNumber = '';
-    final cryptoWallet = 'Мой кошелек крипты';
-    final boostyLink = 'link';
+    final cryptoWallet = 'TNmWJcEHHQWmtFK4H9YpwGws4LdVzNAFbZ';
+    final boostyLink = 'https://boosty.to/andromeda2000';
 
     showDialog(
         context: context,
@@ -496,34 +494,12 @@ class _SettingsScreenState extends State<SettingsScreen>{
                   'Если приложение помогает и вы хотите сказать "спасибо":',
                   style: TextStyle(fontSize: 14),
                 ),
-                const SizedBox(height: 16),
-
-                // КАРТА
-                _buildDonationItem(
-                  icon: Icons.credit_card,
-                  title: 'Карта',
-                  value: cardNumber,
-                  color: Colors.green.shade700,
-                  onTap: () => _copyToClipboard(cardNumber, 'Номер карты скопирован'),
-                ),
-
-                const SizedBox(height: 12),
-
-                // СБП
-                _buildDonationItem(
-                  icon: Icons.phone_android,
-                  title: 'СБП',
-                  value: sbpNumber,
-                  color: Colors.blue.shade700,
-                  onTap: () => _copyToClipboard(sbpNumber, 'Номер СБП скопирован'),
-                ),
-
                 const SizedBox(height: 12),
 
                 // КРИПТО
                 _buildDonationItem(
                   icon: Icons.currency_bitcoin,
-                  title: 'Крипто',
+                  title: 'Крипто адрес (Trc20)',
                   value: cryptoWallet,
                   color: Colors.orange.shade700,
                   onTap: () => _copyToClipboard(cryptoWallet, 'Адрес кошелька скопирован'),
@@ -537,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
                   title: 'Boosty',
                   value: boostyLink,
                   color: Colors.yellow.shade700,
-                  onTap: () => _copyToClipboard(boostyLink, 'Адрес Boosty скопирован'),
+                  onTap: () => _copyToClipboard(boostyLink, 'Ссылка на Boosty скопирована'),
                 ),
 
                 const SizedBox(height: 20),
