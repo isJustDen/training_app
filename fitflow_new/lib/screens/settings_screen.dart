@@ -489,7 +489,7 @@ class _SettingsScreenState extends State<SettingsScreen>{
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Вгзляды на будущее:',
+                'Взгляды на будущее:',
                 style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 12),
